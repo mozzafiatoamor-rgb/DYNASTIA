@@ -125,7 +125,10 @@ textarea.input{resize:vertical;min-height:74px}
 /* List items */
 .li{display:flex;align-items:center;gap:13px;padding:14px 16px;border-bottom:1px solid var(--line)}
 .li:last-child{border-bottom:none}
-.avatar{width:44px;height:44px;border-radius:12px;flex:0 0 auto;display:grid;place-items:center;font-family:'Bebas Neue';font-size:22px;color:#fff;background:linear-gradient(135deg,#2b3744,#1a212b);border:1px solid var(--line)}
+.avatar{width:44px;height:44px;border-radius:12px;flex:0 0 auto;display:grid;place-items:center;font-family:'Bebas Neue';font-size:22px;color:#fff;background:linear-gradient(135deg,#2b3744,#1a212b);border:1px solid var(--line);overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
+.mini-cal{gap:4px}
+.cal-cell.paid{border-color:var(--green);background:rgba(47,191,113,.12)}
 .li .meta{flex:1;min-width:0}
 .li .meta .nm{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .li .meta .dt{font-size:12px;color:var(--muted)}
@@ -215,8 +218,22 @@ textarea.input{resize:vertical;min-height:74px}
 .video-box{width:100%;max-width:680px;position:relative}
 .video-x{position:absolute;top:-46px;right:0;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-items:center}
 .video-frame{width:100%;aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden}
-.ts-video{margin-top:16px;background:rgba(255,255,255,.16);color:#fff;font-weight:800;font-size:14px;padding:10px 16px;border-radius:12px;display:inline-flex;align-items:center;gap:7px;backdrop-filter:blur(4px)}
-.ts-video svg{width:16px;height:16px;fill:#fff}
+.ts-video-row{display:flex;gap:10px;margin-top:16px;justify-content:center;flex-wrap:wrap}
+.ts-video{background:rgba(255,255,255,.16);color:#fff;font-weight:800;font-size:13px;padding:10px 15px;border-radius:12px;display:inline-flex;align-items:center;gap:7px;backdrop-filter:blur(4px)}
+.ts-video svg{width:15px;height:15px;fill:#fff}
+.cal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.cal-title{font-size:24px}
+.cal-nav{width:42px;height:42px;border-radius:11px;background:var(--surface2);border:1px solid var(--line);color:var(--text);font-size:24px;font-weight:700;line-height:1}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal-dow{margin-bottom:6px}
+.cal-dow-c{text-align:center;font-size:11px;color:var(--muted);font-weight:800}
+.cal-cell{aspect-ratio:1;border:1px solid var(--line);border-radius:10px;background:var(--bg2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:var(--text);font-weight:700;padding:0}
+.cal-cell.empty{border:none;background:transparent}
+.cal-cell.active{background:var(--surface)}
+.cal-cell.today{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}
+.cal-cell span{font-size:14px}
+.cal-ic{font-size:9px;line-height:1;height:10px}
+.cal-legend{display:flex;gap:16px;justify-content:center;margin-top:14px;font-size:11px;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -248,7 +265,7 @@ textarea.input{resize:vertical;min-height:74px}
     <button data-tab="programas" onclick="go('programas')"><svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg><span>Programas</span></button>
     <button data-tab="timer" onclick="go('timer')"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2M9 2h6M12 2v3"/></svg><span>Cronómetro</span></button>
     <button data-tab="dinero" onclick="go('dinero')"><svg viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg><span>Dinero</span></button>
-    <button data-tab="reportes" onclick="go('reportes')"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 16l4-6 3 3 5-8"/></svg><span>Reportes</span></button>
+    <button data-tab="reportes" onclick="go('reportes')"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 16l4-6 3 3 5-8"/></svg><span>Avances</span></button>
   </div>
 </nav>
 
@@ -264,7 +281,10 @@ textarea.input{resize:vertical;min-height:74px}
     <div class="ts-num" id="tsNum">10</div>
     <div class="ts-meta" id="tsMeta"></div>
     <div class="ts-next" id="tsNext"></div>
-    <button class="ts-video hide" id="tsVideo" onclick="showVideoFromTimer()"><svg viewBox="0 0 24 24"><path d="M5 4l14 8-14 8z"/></svg>Ver técnica</button>
+    <div class="ts-video-row hide" id="tsVideo">
+      <button class="ts-video" onclick="showVideoFromTimer()"><svg viewBox="0 0 24 24"><path d="M5 4l14 8-14 8z"/></svg>Ver aquí</button>
+      <button class="ts-video" onclick="openVideoExternalFromTimer()">↗ Sin anuncios</button>
+    </div>
   </div>
   <div class="ts-prog"><i id="tsProg" style="width:0%"></i></div>
   <div class="ts-bottom">
@@ -376,6 +396,7 @@ const BASE_EXERCISES=[
 (function migrate(){
   if(!db.attendance) db.attendance=[];
   if(!db.payments) db.payments=[];
+  if(!db.plans) db.plans=[];
   if(!db.settings) db.settings={pkgPrice:300,pkgSize:6,particularPrice:150};
   if(!db.categories) db.categories=[];
   BASE_CATS.forEach(c=>{ if(!db.categories.includes(c)) db.categories.push(c); });
@@ -399,6 +420,14 @@ const BASE_EXERCISES=[
       db.seededKeys.push(key);
     }
   });
+  // separar el link de la nota a su propio campo editable (una sola vez por ejercicio)
+  db.exercises.forEach(e=>{
+    if(e.video===undefined){
+      const u=firstUrl(e.note||'');
+      e.video = u || '';
+      if(u){ e.note=(e.note||'').replace(/Ver:\s*https?:\/\/\S+/i,'').replace(/\s{2,}/g,' ').replace(/\.\s*\./g,'.').replace(/\s+\./g,'.').trim(); }
+    }
+  });
   save();
 })();
 
@@ -408,17 +437,22 @@ const main=$('#main');
 const peso=n=>'$'+(Math.round(n*100)/100).toLocaleString('es-MX');
 const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const initials=n=>(n||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
+function avatarInner(st){ return (st && st.photo) ? `<img src="${st.photo}" alt="">` : initials(st&&st.name); }
 function fmtDate(iso){ const d=new Date(iso); return d.toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'numeric'}); }
-function todayISO(){ return new Date().toISOString().slice(0,10); }
+function todayISO(){ const d=new Date(); return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10); }
 function vibrate(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){} }
 /* ---- Video (YouTube incrustado) ---- */
 function firstUrl(text){ const m=(text||'').match(/https?:\/\/[^\s)]+/); return m? m[0].replace(/[.,;]+$/,'') : null; }
 function ytId(url){ if(!url) return null; const m=url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/); return m? m[1] : null; }
-function demoBtn(note){
-  const url=firstUrl(note); if(!url) return '';
-  const id=ytId(url);
-  if(id) return `<button class="btn ghost sm" style="width:100%;margin-top:8px" onclick="showVideo('${id}')"><svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor" style="margin-right:2px"><path d="M5 4l14 8-14 8z"/></svg>Ver demostración</button>`;
-  return `<a class="btn ghost sm" style="width:100%;margin-top:8px;text-decoration:none" href="${url}" target="_blank" rel="noopener">↗ Ver referencia</a>`;
+function exVideoUrl(ex){ return (ex && ex.video) || firstUrl(ex && ex.note) || ''; }
+function demoBtn(url){
+  if(!url) return '';
+  const safe=esc(url), id=ytId(url);
+  if(id) return `<div class="btn-row" style="margin-top:8px">
+      <button class="btn ghost sm" style="flex:1" onclick="showVideo('${id}')"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M5 4l14 8-14 8z"/></svg>Ver aqu\u00ed</button>
+      <a class="btn ghost sm" style="flex:1;text-decoration:none" href="${safe}" target="_blank" rel="noopener">\u2197 Abrir en navegador</a>
+    </div>`;
+  return `<a class="btn ghost sm" style="width:100%;margin-top:8px;text-decoration:none" href="${safe}" target="_blank" rel="noopener">\u2197 Ver referencia</a>`;
 }
 function showVideo(id){
   const f=$('#videoFrame'); if(!f) return;
@@ -426,10 +460,9 @@ function showVideo(id){
   $('#videoBg').classList.add('show');
 }
 function closeVideo(){ const f=$('#videoFrame'); if(f) f.innerHTML=''; $('#videoBg').classList.remove('show'); }
-function showVideoFromTimer(){
-  if(T.running){ T.running=false; T.last=Date.now(); const b=$('#playBtn'); if(b)b.textContent='Reanudar'; releaseWake(); }
-  if(T.curVid) showVideo(T.curVid);
-}
+function pauseTimerForVideo(){ if(T.running){ T.running=false; T.last=Date.now(); const b=$('#playBtn'); if(b)b.textContent='Reanudar'; releaseWake(); } }
+function showVideoFromTimer(){ pauseTimerForVideo(); if(T.curVid) showVideo(T.curVid); }
+function openVideoExternalFromTimer(){ pauseTimerForVideo(); if(T.curUrl){ try{ window.open(T.curUrl,'_blank','noopener'); }catch(e){} } }
 let toastT;
 function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),1900); }
 
@@ -459,7 +492,7 @@ function render(){
   else if(currentTab==='programas') viewProgramas();
   else if(currentTab==='timer') viewTimer();
   else if(currentTab==='dinero') viewDinero();
-  else if(currentTab==='reportes') viewReportes();
+  else if(currentTab==='reportes') viewAvances();
 }
 
 /* ===================================================================
@@ -478,7 +511,7 @@ function viewAlumnos(){
       const pct=size?Math.min(100,Math.round(used/size*100)):0;
       const tag = size? (used>=size?`<span class="pill amber">Renovar</span>`:`<span class="pill green">${used}/${size}</span>`) : `<span class="pill blue">Particular</span>`;
       h+=`<div class="li" onclick="studentDetail('${st.id}')">
-        <div class="avatar">${initials(st.name)}</div>
+        <div class="avatar">${avatarInner(st)}</div>
         <div class="meta"><div class="nm">${esc(st.name)}</div>
           <div class="dt">${studentAttendance(st.id).length} asistencias</div></div>
         ${tag}
@@ -491,13 +524,31 @@ function viewAlumnos(){
   main.innerHTML=h;
 }
 
+let stuPayCal=null;
+function stuPayNav(id,d){ let m=stuPayCal.m+d,y=stuPayCal.y; if(m<0){m=11;y--;} if(m>11){m=0;y++;} stuPayCal={sid:id,y,m}; studentDetail(id); }
+function renderStudentPayCal(id){
+  const y=stuPayCal.y, m=stuPayCal.m, ym=ymd(y,m,1).slice(0,7);
+  const first=new Date(y,m,1), startDow=(first.getDay()+6)%7, days=new Date(y,m+1,0).getDate();
+  const byDay={}; db.payments.filter(p=>p.studentId===id && p.date.slice(0,7)===ym).forEach(p=>{ const dd=+p.date.slice(8,10); byDay[dd]=(byDay[dd]||0)+p.amount; });
+  let h=`<div class="cal-head" style="margin-bottom:8px">
+    <button class="cal-nav" style="width:34px;height:34px;font-size:18px" onclick="stuPayNav('${id}',-1)">‹</button>
+    <div class="bebas" style="font-size:18px">${MONTHS[m]} ${y}</div>
+    <button class="cal-nav" style="width:34px;height:34px;font-size:18px" onclick="stuPayNav('${id}',1)">›</button></div>`;
+  h+=`<div class="cal-grid mini-cal cal-dow">`+['L','M','X','J','V','S','D'].map(d=>`<div class="cal-dow-c" style="font-size:9px">${d}</div>`).join('')+`</div>`;
+  h+=`<div class="cal-grid mini-cal">`;
+  for(let i=0;i<startDow;i++) h+=`<div class="cal-cell empty"></div>`;
+  for(let d=1;d<=days;d++){ const paid=byDay[d]; h+=`<div class="cal-cell${paid?' paid':''}"><span style="font-size:11px">${d}</span><div class="cal-ic">${paid?'💲':''}</div></div>`; }
+  h+=`</div>`;
+  return h;
+}
 function studentDetail(id){
   const st=db.students.find(x=>x.id===id); if(!st)return;
+  if(!stuPayCal || stuPayCal.sid!==id) stuPayCal={sid:id,y:new Date().getFullYear(),m:new Date().getMonth()};
   const att=studentAttendance(id);
   const used=st.package?.used||0, size=st.package?.size||0;
   const pct=size?Math.min(100,Math.round(used/size*100)):0;
   let h=`<div class="row between" style="margin-bottom:14px">
-    <div class="row"><div class="avatar" style="width:50px;height:50px;font-size:24px">${initials(st.name)}</div>
+    <div class="row"><div class="avatar" style="width:54px;height:54px;font-size:26px;border-radius:16px">${avatarInner(st)}</div>
     <div><h2 style="font-size:24px">${esc(st.name)}</h2>${st.phone?`<div class="tiny muted">${esc(st.phone)}</div>`:''}</div></div>
     <button class="icon-btn" onclick="editStudent('${st.id}')"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4z"/></svg></button>
   </div>`;
@@ -510,7 +561,32 @@ function studentDetail(id){
   }
   if(st.notes) h+=`<div class="card"><div class="tiny muted" style="margin-bottom:4px">NOTAS</div>${esc(st.notes)}</div>`;
   h+=`<button class="btn primary" onclick="registerAttendance('${st.id}')" style="margin:4px 0 16px"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Registrar asistencia de hoy</button>`;
-  h+=`<div class="section-h" style="margin-top:0">Historial de clases</div>`;
+
+  // ---- PAGOS ----
+  const pays=db.payments.filter(p=>p.studentId===id).sort((a,b)=>b.date.localeCompare(a.date));
+  const totalPaid=pays.reduce((a,p)=>a+p.amount,0);
+  h+=`<div class="section-h" style="margin-top:0">Pagos</div>`;
+  h+=`<div class="card"><div class="row between" style="margin-bottom:10px"><b>Total pagado</b><span class="pill green">${peso(totalPaid)}</span></div>`;
+  h+=renderStudentPayCal(id);
+  h+=`</div>`;
+  if(pays.length){
+    h+=`<div class="card pad0">`;
+    pays.forEach(p=>{ h+=`<div class="li"><div class="meta"><div class="nm">${esc(p.concept)}</div><div class="dt">${fmtDate(p.date)}</div></div><b style="color:var(--green)">${peso(p.amount)}</b></div>`; });
+    h+=`</div>`;
+  } else { h+=`<div class="muted tiny" style="padding:0 4px 8px">Sin pagos registrados.</div>`; }
+  h+=`<button class="btn ghost" onclick="addPayment('${st.id}')" style="margin-bottom:16px">+ Registrar pago</button>`;
+
+  // ---- PROGRAMAS ENTRENADOS ----
+  const pc={}; att.forEach(a=>{ const k=a.program||'Sesión libre'; if(!pc[k]) pc[k]={n:0,last:a.date}; pc[k].n++; if(a.date>pc[k].last) pc[k].last=a.date; });
+  const progKeys=Object.keys(pc);
+  h+=`<div class="section-h" style="margin-top:0">Programas entrenados</div>`;
+  if(!progKeys.length){ h+=`<div class="muted tiny" style="padding:0 4px 12px">Aún no ha entrenado ningún programa.</div>`; }
+  else { h+=`<div class="card pad0">`; progKeys.sort((a,b)=>pc[b].n-pc[a].n).forEach(k=>{
+    h+=`<div class="li"><div class="meta"><div class="nm">${esc(k)}</div><div class="dt">Última: ${fmtDate(pc[k].last)}</div></div><span class="pill accent">${pc[k].n}×</span></div>`;
+  }); h+=`</div>`; }
+
+  // ---- HISTORIAL DE CLASES ----
+  h+=`<div class="section-h">Historial de clases</div>`;
   if(!att.length){ h+=`<div class="muted tiny" style="padding:0 4px 10px">Sin clases registradas todavía.</div>`; }
   else att.forEach(a=>{
     h+=`<div class="card"><div class="row between"><b>${fmtDate(a.date)}</b>${a.performance?`<span class="pill green">${esc(a.performance)}</span>`:''}</div>
@@ -521,9 +597,41 @@ function studentDetail(id){
   openModal(h);
 }
 
+let studentPhoto=null;
+function compressImage(file, cb){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const img=new Image();
+    img.onload=()=>{
+      const sw=Math.min(img.width,img.height);
+      const target=Math.min(300, sw);
+      const c=document.createElement('canvas'); c.width=target; c.height=target;
+      const ctx=c.getContext('2d');
+      ctx.drawImage(img,(img.width-sw)/2,(img.height-sw)/2,sw,sw,0,0,target,target);
+      try{ cb(c.toDataURL('image/jpeg',0.8)); }catch(err){ toast('No se pudo procesar la foto'); }
+    };
+    img.onerror=()=>toast('Imagen no válida');
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function onPhotoPick(ev){
+  const f=ev.target.files&&ev.target.files[0]; if(!f) return;
+  compressImage(f, url=>{ studentPhoto=url; const p=$('#photoPrev'); if(p)p.innerHTML='<img src="'+url+'" alt="">'; const rm=$('#photoRm'); if(rm)rm.classList.remove('hide'); });
+}
+function removeStudentPhoto(){ studentPhoto=null; const p=$('#photoPrev'); if(p)p.innerHTML=initials(($('#f_name')&&$('#f_name').value)||'?'); const rm=$('#photoRm'); if(rm)rm.classList.add('hide'); }
 function editStudent(id){
   const st = id? db.students.find(x=>x.id===id) : null;
+  studentPhoto = st? (st.photo||null) : null;
   const h=`<h2>${st?'Editar alumno':'Nuevo alumno'}</h2>
+  <div style="display:flex;flex-direction:column;align-items:center;gap:10px;margin-bottom:16px">
+    <div class="avatar" id="photoPrev" style="width:88px;height:88px;font-size:36px;border-radius:22px">${studentPhoto?`<img src="${studentPhoto}" alt="">`:initials(st?st.name:'?')}</div>
+    <div class="btn-row" style="justify-content:center">
+      <button class="btn sm ghost" onclick="document.getElementById('photoInput').click()">📷 Tomar / elegir foto</button>
+      <button class="btn sm ghost danger ${studentPhoto?'':'hide'}" id="photoRm" style="flex:0 0 auto" onclick="removeStudentPhoto()">Quitar</button>
+    </div>
+    <input type="file" id="photoInput" accept="image/*" style="display:none" onchange="onPhotoPick(event)">
+  </div>
   <label class="field"><span class="lab">Nombre</span><input class="input" id="f_name" value="${st?esc(st.name):''}" placeholder="Ej. Carlos Méndez"></label>
   <label class="field"><span class="lab">Teléfono (opcional)</span><input class="input" id="f_phone" value="${st?esc(st.phone||''):''}" inputmode="tel" placeholder="Para compartir reportes"></label>
   <label class="field"><span class="lab">Notas (opcional)</span><textarea class="input" id="f_notes" placeholder="Objetivos, lesiones, observaciones...">${st?esc(st.notes||''):''}</textarea></label>
@@ -533,14 +641,15 @@ function editStudent(id){
 }
 function saveStudent(id){
   const name=$('#f_name').value.trim(); if(!name){ toast('Escribe un nombre'); return; }
-  if(id){ const st=db.students.find(x=>x.id===id); st.name=name; st.phone=$('#f_phone').value.trim(); st.notes=$('#f_notes').value.trim(); }
-  else db.students.push({id:uid(),name,phone:$('#f_phone').value.trim(),notes:$('#f_notes').value.trim(),package:null,createdAt:Date.now()});
+  if(id){ const st=db.students.find(x=>x.id===id); st.name=name; st.phone=$('#f_phone').value.trim(); st.notes=$('#f_notes').value.trim(); st.photo=studentPhoto||null; }
+  else db.students.push({id:uid(),name,phone:$('#f_phone').value.trim(),notes:$('#f_notes').value.trim(),photo:studentPhoto||null,package:null,createdAt:Date.now()});
   save(); closeModal(); render(); toast('Alumno guardado');
 }
 function delStudent(id){
   if(!confirm('¿Borrar este alumno y todo su historial?'))return;
   db.students=db.students.filter(x=>x.id!==id);
   db.attendance=db.attendance.filter(a=>a.studentId!==id);
+  db.payments=db.payments.filter(p=>p.studentId!==id);
   save(); closeModal(); render(); toast('Alumno eliminado');
 }
 
@@ -636,7 +745,7 @@ function programDetail(id){
   p.items.forEach((it,i)=>{
     h+=`<div class="block-card"><div class="row between"><b>${i+1}. ${esc(it.name)}</b><span class="pill ${it.type==='reps'?'amber':'blue'}">${it.type==='reps'?'Reps':'Tiempo'}</span></div>
       <div class="tiny muted" style="margin-top:6px">${esc(it.category)} \u00b7 ${itemSummary(it)}</div>
-      ${it.note?`<div class="tiny" style="margin-top:6px;color:var(--accent2)">\ud83d\udca1 ${esc(it.note)}</div>`:''}${demoBtn(it.note)}</div>`;
+      ${it.note?`<div class="tiny" style="margin-top:6px;color:var(--accent2)">\ud83d\udca1 ${esc(it.note)}</div>`:''}${demoBtn(exVideoUrl(it))}</div>`;
   });
   h+=`<button class="btn primary" style="margin-top:8px" onclick="closeModal();runProgram('${p.id}')"><svg viewBox="0 0 24 24" width="20" height="20" fill="#fff"><path d="M5 4l14 8-14 8z"/></svg>Iniciar gu\u00eda en vivo</button>
     <button class="btn ghost danger" style="margin-top:10px" onclick="delProgram('${p.id}')">Borrar programa</button>`;
@@ -650,7 +759,7 @@ function editExercise(id){
   exItemIdx=-1; exEditId=id||null;
   const e=id?db.exercises.find(x=>x.id===id):null;
   exEdit = e? JSON.parse(JSON.stringify(e))
-    : {name:'',category:db.categories[0]||'Calentamiento',type:'time',prep:10,work:20,rest:10,rounds:8,series:1,restSeries:60,reps:10,note:''};
+    : {name:'',category:db.categories[0]||'Activación',type:'time',prep:10,work:20,rest:10,rounds:8,series:1,restSeries:60,reps:10,note:'',video:''};
   renderExerciseForm();
 }
 function editItem(i){ exItemIdx=i; exEditId=null; exEdit=JSON.parse(JSON.stringify(progEdit.items[i])); renderExerciseForm(); }
@@ -664,7 +773,8 @@ function renderExerciseForm(){
    <div class="seg"><button class="${e.type==='time'?'on':''}" onclick="exSetType('time')">Por tiempo</button><button class="${e.type==='reps'?'on':''}" onclick="exSetType('reps')">Por repeticiones</button></div>
    <div id="ex_fields"></div>
    <label class="field" style="margin-top:12px"><span class="lab">Nota / indicaci\u00f3n (opcional)</span><textarea class="input" placeholder="Cue t\u00e9cnico, ej. cargar cadera" oninput="exEdit.note=this.value">${esc(e.note||'')}</textarea></label>
-   ${demoBtn(e.note)}
+   <label class="field"><span class="lab">Link del video (YouTube u otro)</span><input class="input" value="${esc(e.video||'')}" placeholder="https://youtube.com/watch?v=..." oninput="exEdit.video=this.value" inputmode="url"></label>
+   ${demoBtn(exVideoUrl(e))}
    <div class="btn-row"><button class="btn primary" onclick="saveExercise()">Guardar</button>${(exEditId&&!isItem)?`<button class="btn danger" style="flex:0 0 auto" onclick="delExercise()">Borrar</button>`:''}</div>`;
   openModal(h); renderExFields();
 }
@@ -828,9 +938,9 @@ function qField(k,lab,v){ return `<label class="field" style="margin:0"><span cl
 function upQuick(k,v){ db.quick[k]=parseInt(v)||0; save(); const c=$('#quickDur'); if(c)c.textContent=fmtDur(itemTimedSeconds({type:'time',...db.quick})); }
 
 /* ---- Motor de la gu\u00eda en vivo (tiempo + repeticiones) ---- */
-let T = { phases:[], idx:0, remaining:0, running:false, interval:null, last:0, beep:true, wake:null, lastSec:null, program:null, exNames:[], attCtx:null, curVid:null };
+let T = { phases:[], idx:0, remaining:0, running:false, interval:null, last:0, beep:true, wake:null, lastSec:null, program:null, exNames:[], attCtx:null, curVid:null, curUrl:null };
 function buildExerciseSteps(ex){
-  const st=[]; const vid=ytId(firstUrl(ex.note));
+  const st=[]; const vid=ytId(exVideoUrl(ex));
   if(ex.type==='reps'){
     const series=Math.max(1,+ex.series||1), reps=+ex.reps||0, restS=+ex.restSeries||0;
     for(let s=0;s<series;s++){
@@ -888,6 +998,7 @@ function applyPhase(){
   for(let i=T.idx+1;i<T.phases.length;i++){ const q=T.phases[i]; if(q.type==='done')break; if(q.exName && q.exName!==p.exName){ nx=q.exName; break; } }
   $('#tsNext').textContent = p.type==='done' ? '' : (nx? 'Sigue: '+nx : '\u00daltimo ejercicio \ud83d\udcaa');
   T.curVid = p.vid||null;
+  T.curUrl = T.curVid ? ('https://www.youtube.com/watch?v='+T.curVid) : null;
   $('#tsVideo').classList.toggle('hide', !(T.curVid && p.type!=='done'));
   updateNum();
   const vibMap={prep:[120],work:[260],rest:[90,60,90],restSeries:[90,60,90,60,90],reps:[200],done:[300,120,300,120,400]};
@@ -926,7 +1037,7 @@ function finishAttendance(){
   const rows=db.students.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(st=>`
     <label class="li" style="cursor:pointer">
       <input type="checkbox" class="att-chk" value="${st.id}" style="width:22px;height:22px;accent-color:var(--accent);flex:0 0 auto">
-      <div class="avatar">${initials(st.name)}</div>
+      <div class="avatar">${avatarInner(st)}</div>
       <div class="meta"><div class="nm">${esc(st.name)}</div><div class="dt">${st.package&&st.package.size?`${st.package.used}/${st.package.size} clases`:'Particular'}</div></div>
     </label>`).join('');
   openModal(`<h2>\u00bfQui\u00e9n asisti\u00f3?</h2>
@@ -1059,9 +1170,11 @@ function viewDinero(){
   h+=`</section>`;
   main.innerHTML=h;
 }
-function addPayment(){
+let payReturn=null;
+function addPayment(preId){
+  payReturn = preId || null;
   const s=db.settings;
-  const opts=db.students.map(st=>`<option value="${st.id}">${esc(st.name)}</option>`).join('');
+  const opts=db.students.map(st=>`<option value="${st.id}" ${preId===st.id?'selected':''}>${esc(st.name)}</option>`).join('');
   const h=`<h2>Registrar pago</h2>
   <label class="field"><span class="lab">Alumno</span><select class="input" id="pa_st"><option value="">— General —</option>${opts}</select></label>
   <label class="field"><span class="lab">Concepto</span>
@@ -1088,23 +1201,119 @@ function savePayment(){
   db.payments.push({id:uid(),studentId:sid,concept:label,amount,date});
   if(concept==='paquete' && sid){ const st=db.students.find(x=>x.id===sid); if(st) st.package={size:s.pkgSize,used:0}; }
   save(); closeModal(); render(); toast('Pago registrado');
+  const ret=payReturn; payReturn=null;
+  if(ret && db.students.find(x=>x.id===ret)) studentDetail(ret);
 }
 function delPayment(id){ if(!confirm('¿Eliminar este pago?'))return; db.payments=db.payments.filter(x=>x.id!==id); save(); render(); }
 
 /* ===================================================================
-   REPORTES
+   AVANCES: Calendario + Reportes
 =================================================================== */
-function viewReportes(){
-  let h=`<section class="view"><h1 class="view-title bebas">Reportes</h1><div class="view-sub">Comparte el avance de cada alumno</div>`;
-  if(!db.students.length){ h+=`<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M3 3v18h18"/><path d="M7 16l4-6 3 3 5-8"/></svg><div>Agrega alumnos para generar reportes.</div></div>`; }
-  else { h+=`<div class="card pad0">`; db.students.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(st=>{
-    h+=`<div class="li" onclick="showReport('${st.id}')"><div class="avatar">${initials(st.name)}</div>
-      <div class="meta"><div class="nm">${esc(st.name)}</div><div class="dt">${studentAttendance(st.id).length} clases registradas</div></div>
-      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>`;
-  }); h+=`</div>`; }
+let avSub='calendar';
+let calRef={y:new Date().getFullYear(), m:new Date().getMonth()};
+function avSwitch(s){ avSub=s; render(); }
+function viewAvances(){
+  let h=`<section class="view"><h1 class="view-title bebas">Avances</h1>
+    <div class="seg"><button class="${avSub==='calendar'?'on':''}" onclick="avSwitch('calendar')">Calendario</button>
+    <button class="${avSub==='reports'?'on':''}" onclick="avSwitch('reports')">Reportes</button></div>`;
+  h+= avSub==='reports'? renderReportsList() : renderCalendar();
   h+=`</section>`;
   main.innerHTML=h;
 }
+function renderReportsList(){
+  if(!db.students.length) return `<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M3 3v18h18"/><path d="M7 16l4-6 3 3 5-8"/></svg><div>Agrega alumnos para generar reportes.</div></div>`;
+  let h=`<div class="view-sub" style="margin-bottom:14px">Comparte el avance de cada alumno</div><div class="card pad0">`;
+  db.students.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(st=>{
+    h+=`<div class="li" onclick="showReport('${st.id}')"><div class="avatar">${avatarInner(st)}</div>
+      <div class="meta"><div class="nm">${esc(st.name)}</div><div class="dt">${studentAttendance(st.id).length} clases registradas</div></div>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>`;
+  });
+  h+=`</div>`; return h;
+}
+
+/* ---- Calendario ---- */
+const MONTHS=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+function ymd(y,m,d){ return y+'-'+String(m+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'); }
+function attendanceByDate(ds){ return db.attendance.filter(a=>a.date===ds); }
+function plansByDate(ds){ return (db.plans||[]).filter(p=>p.date===ds); }
+function fmtDateLong(ds){ const a=ds.split('-').map(Number); const d=new Date(a[0],a[1]-1,a[2]); let s=d.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'}); return s.charAt(0).toUpperCase()+s.slice(1); }
+function calNav(d){ let m=calRef.m+d, y=calRef.y; if(m<0){m=11;y--;} if(m>11){m=0;y++;} calRef={y,m}; render(); }
+function renderCalendar(){
+  const y=calRef.y, m=calRef.m;
+  const first=new Date(y,m,1);
+  const startDow=(first.getDay()+6)%7; // lunes=0
+  const days=new Date(y,m+1,0).getDate();
+  const today=todayISO();
+  let h=`<div class="cal-head">
+    <button class="cal-nav" onclick="calNav(-1)">‹</button>
+    <div class="cal-title bebas">${MONTHS[m]} ${y}</div>
+    <button class="cal-nav" onclick="calNav(1)">›</button></div>`;
+  h+=`<div class="cal-grid cal-dow">`+['L','M','X','J','V','S','D'].map(d=>`<div class="cal-dow-c">${d}</div>`).join('')+`</div>`;
+  h+=`<div class="cal-grid">`;
+  for(let i=0;i<startDow;i++) h+=`<div class="cal-cell empty"></div>`;
+  for(let d=1; d<=days; d++){
+    const ds=ymd(y,m,d);
+    const att=attendanceByDate(ds).length, pl=plansByDate(ds).length;
+    let ic=''; if(att) ic+='🔥'; if(pl) ic+='📋';
+    h+=`<button class="cal-cell${ds===today?' today':''}${(att||pl)?' active':''}" onclick="openDay('${ds}')"><span>${d}</span><div class="cal-ic">${ic}</div></button>`;
+  }
+  h+=`</div>`;
+  h+=`<div class="cal-legend"><span>🔥 Clase registrada</span><span>📋 Plan del día</span></div>`;
+  return h;
+}
+function openDay(ds){
+  const att=attendanceByDate(ds);
+  const groups={};
+  att.forEach(a=>{ const k=a.program||'Sesión libre'; (groups[k]=groups[k]||[]).push(a); });
+  const plans=plansByDate(ds);
+  let h=`<h2>${fmtDateLong(ds)}</h2>`;
+  h+=`<div class="section-h" style="margin-top:2px">Hecho este día</div>`;
+  if(!att.length){ h+=`<div class="tiny muted" style="padding:2px 2px 8px">Nada registrado aún. Se llena solo al correr un programa en la guía en vivo.</div>`; }
+  else Object.entries(groups).forEach(([prog,list])=>{
+    const names=list.map(a=>{ const st=db.students.find(s=>s.id===a.studentId); return st?st.name:'?'; });
+    h+=`<div class="card"><div class="row between"><b>${esc(prog)}</b><span class="pill green">${list.length} asist.</span></div>
+      <div class="tiny muted" style="margin-top:6px">${names.map(esc).join(', ')}</div>
+      ${list[0].did?`<div class="tiny" style="margin-top:6px;color:var(--accent2)">${esc(list[0].did)}</div>`:''}</div>`;
+  });
+  h+=`<div class="section-h">Plan del día</div>`;
+  if(!plans.length){ h+=`<div class="tiny muted" style="padding:2px 2px 8px">Sin plan. Agrega lo que vas a trabajar.</div>`; }
+  else plans.forEach(p=>{
+    const prog=p.programId? db.programs.find(x=>x.id===p.programId):null;
+    const title=prog?prog.name:(p.title||'Actividad');
+    const done=att.some(a=>a.program===(prog?prog.name:p.title))?`<span class="pill green">✓ hecho</span>`:'';
+    h+=`<div class="card"><div class="row between"><b>${p.time?esc(p.time)+' · ':''}${esc(title)}</b>${done}</div>
+      ${p.note?`<div class="tiny muted" style="margin-top:4px">${esc(p.note)}</div>`:''}
+      <div class="btn-row" style="margin-top:10px">
+        ${prog?`<button class="btn sm primary" style="flex:1" onclick="closeModal();runProgram('${prog.id}')"><svg viewBox="0 0 24 24" width="16" height="16" fill="#fff"><path d="M5 4l14 8-14 8z"/></svg>Iniciar</button>`:''}
+        <button class="btn sm ghost" onclick="editPlan('${ds}','${p.id}')">Editar</button>
+        <button class="btn sm ghost danger" onclick="delPlan('${ds}','${p.id}')">Borrar</button>
+      </div></div>`;
+  });
+  h+=`<button class="btn primary" style="margin-top:8px" onclick="editPlan('${ds}','')">+ Agregar al plan</button>`;
+  openModal(h);
+}
+function editPlan(ds,id){
+  const pl=id? db.plans.find(x=>x.id===id):null;
+  const progOpts=db.programs.map(p=>`<option value="${p.id}" ${pl&&pl.programId===p.id?'selected':''}>${esc(p.name)}</option>`).join('');
+  const h=`<h2>${pl?'Editar plan':'Agregar al plan'}</h2>
+   <div class="tiny muted" style="margin-bottom:10px">${fmtDateLong(ds)}</div>
+   <label class="field"><span class="lab">Programa</span><select class="input" id="pl_prog"><option value="">— Libre / otro —</option>${progOpts}</select></label>
+   <label class="field"><span class="lab">Título (si es libre)</span><input class="input" id="pl_title" value="${pl?esc(pl.title||''):''}" placeholder="Ej. Bateo grupo avanzado"></label>
+   <label class="field"><span class="lab">Hora (opcional)</span><input class="input" id="pl_time" value="${pl?esc(pl.time||''):''}" placeholder="Ej. 5:00 PM"></label>
+   <label class="field"><span class="lab">Nota / grupo (opcional)</span><textarea class="input" id="pl_note" placeholder="Grupo, enfoque, recordatorios...">${pl?esc(pl.note||''):''}</textarea></label>
+   <button class="btn primary" onclick="savePlan('${ds}','${id||''}')">Guardar</button>`;
+  openModal(h);
+}
+function savePlan(ds,id){
+  if(!db.plans) db.plans=[];
+  const programId=$('#pl_prog').value, title=$('#pl_title').value.trim(), time=$('#pl_time').value.trim(), note=$('#pl_note').value.trim();
+  if(!programId && !title){ toast('Elige un programa o escribe un título'); return; }
+  if(id){ Object.assign(db.plans.find(x=>x.id===id), {programId,title,time,note}); }
+  else db.plans.push({id:uid(),date:ds,programId,title,time,note});
+  save(); openDay(ds); render(); toast('Plan guardado');
+}
+function delPlan(ds,id){ if(!confirm('¿Borrar este plan?'))return; db.plans=db.plans.filter(x=>x.id!==id); save(); openDay(ds); render(); toast('Plan borrado'); }
+
 function buildReportText(st){
   const att=studentAttendance(st.id);
   const used=st.package?.used||0, size=st.package?.size||0;
