@@ -435,6 +435,9 @@ const BASE_EXERCISES=[
 const $=s=>document.querySelector(s);
 const main=$('#main');
 const peso=n=>'$'+(Math.round(n*100)/100).toLocaleString('es-MX');
+function studentPkgPrice(st){ return (st && st.pkgPrice!=null && st.pkgPrice!=='') ? +st.pkgPrice : db.settings.pkgPrice; }
+function studentPartPrice(st){ return (st && st.partPrice!=null && st.partPrice!=='') ? +st.partPrice : db.settings.particularPrice; }
+function hasCustomRate(st){ return st && ((st.pkgPrice!=null && st.pkgPrice!=='') || (st.partPrice!=null && st.partPrice!=='')); }
 const esc=s=>(s||'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const initials=n=>(n||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase();
 function avatarInner(st){ return (st && st.photo) ? `<img src="${st.photo}" alt="">` : initials(st&&st.name); }
@@ -559,6 +562,7 @@ function studentDetail(id){
   } else {
     h+=`<div class="card row between"><span class="muted">Sin paquete activo</span><span class="pill blue">Clases particulares</span></div>`;
   }
+  h+=`<div class="card row between" style="margin-top:-4px"><span class="muted tiny">Tarifa</span><span class="tiny" style="font-weight:700">Paquete ${peso(studentPkgPrice(st))} · Particular ${peso(studentPartPrice(st))}${hasCustomRate(st)?' <span class="pill accent" style="margin-left:6px">propia</span>':' <span class="pill blue" style="margin-left:6px">general</span>'}</span></div>`;
   if(st.notes) h+=`<div class="card"><div class="tiny muted" style="margin-bottom:4px">NOTAS</div>${esc(st.notes)}</div>`;
   h+=`<button class="btn primary" onclick="registerAttendance('${st.id}')" style="margin:4px 0 16px"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Registrar asistencia de hoy</button>`;
 
@@ -634,15 +638,24 @@ function editStudent(id){
   </div>
   <label class="field"><span class="lab">Nombre</span><input class="input" id="f_name" value="${st?esc(st.name):''}" placeholder="Ej. Carlos Méndez"></label>
   <label class="field"><span class="lab">Teléfono (opcional)</span><input class="input" id="f_phone" value="${st?esc(st.phone||''):''}" inputmode="tel" placeholder="Para compartir reportes"></label>
-  <label class="field"><span class="lab">Notas (opcional)</span><textarea class="input" id="f_notes" placeholder="Objetivos, lesiones, observaciones...">${st?esc(st.notes||''):''}</textarea></label>
+  <div class="section-h" style="margin:6px 2px 8px">Tarifa propia (opcional)</div>
+  <div class="tiny muted" style="margin:0 2px 8px">Déjalo en blanco para usar la tarifa general (paquete ${peso(db.settings.pkgPrice)} · particular ${peso(db.settings.particularPrice)}).</div>
+  <div class="grid2">
+    <label class="field" style="margin:0"><span class="lab">Precio de paquete</span><input class="input" id="f_pkgPrice" type="number" inputmode="numeric" value="${st&&st.pkgPrice!=null&&st.pkgPrice!==''?st.pkgPrice:''}" placeholder="${db.settings.pkgPrice}"></label>
+    <label class="field" style="margin:0"><span class="lab">Precio particular</span><input class="input" id="f_partPrice" type="number" inputmode="numeric" value="${st&&st.partPrice!=null&&st.partPrice!==''?st.partPrice:''}" placeholder="${db.settings.particularPrice}"></label>
+  </div>
+  <label class="field" style="margin-top:12px"><span class="lab">Notas (opcional)</span><textarea class="input" id="f_notes" placeholder="Objetivos, lesiones, observaciones...">${st?esc(st.notes||''):''}</textarea></label>
   <div class="btn-row"><button class="btn primary" onclick="saveStudent('${id||''}')">Guardar</button>
   ${st?`<button class="btn danger" style="flex:0 0 auto" onclick="delStudent('${st.id}')">Borrar</button>`:''}</div>`;
   openModal(h);
 }
 function saveStudent(id){
   const name=$('#f_name').value.trim(); if(!name){ toast('Escribe un nombre'); return; }
-  if(id){ const st=db.students.find(x=>x.id===id); st.name=name; st.phone=$('#f_phone').value.trim(); st.notes=$('#f_notes').value.trim(); st.photo=studentPhoto||null; }
-  else db.students.push({id:uid(),name,phone:$('#f_phone').value.trim(),notes:$('#f_notes').value.trim(),photo:studentPhoto||null,package:null,createdAt:Date.now()});
+  const pkgP=$('#f_pkgPrice').value.trim(), partP=$('#f_partPrice').value.trim();
+  const pkgPrice = pkgP===''? null : (parseFloat(pkgP)||0);
+  const partPrice = partP===''? null : (parseFloat(partP)||0);
+  if(id){ const st=db.students.find(x=>x.id===id); st.name=name; st.phone=$('#f_phone').value.trim(); st.notes=$('#f_notes').value.trim(); st.photo=studentPhoto||null; st.pkgPrice=pkgPrice; st.partPrice=partPrice; }
+  else db.students.push({id:uid(),name,phone:$('#f_phone').value.trim(),notes:$('#f_notes').value.trim(),photo:studentPhoto||null,pkgPrice,partPrice,package:null,createdAt:Date.now()});
   save(); closeModal(); render(); toast('Alumno guardado');
 }
 function delStudent(id){
@@ -1174,9 +1187,9 @@ let payReturn=null;
 function addPayment(preId){
   payReturn = preId || null;
   const s=db.settings;
-  const opts=db.students.map(st=>`<option value="${st.id}" ${preId===st.id?'selected':''}>${esc(st.name)}</option>`).join('');
+  const opts=db.students.map(st=>`<option value="${st.id}" ${preId===st.id?'selected':''}>${esc(st.name)}${hasCustomRate(st)?' ★':''}</option>`).join('');
   const h=`<h2>Registrar pago</h2>
-  <label class="field"><span class="lab">Alumno</span><select class="input" id="pa_st"><option value="">— General —</option>${opts}</select></label>
+  <label class="field"><span class="lab">Alumno</span><select class="input" id="pa_st" onchange="payUpdatePrices()"><option value="">— General —</option>${opts}</select></label>
   <label class="field"><span class="lab">Concepto</span>
     <select class="input" id="pa_concept" onchange="payConceptChange()">
       <option value="paquete" data-amt="${s.pkgPrice}">Paquete ${s.pkgSize} clases (${peso(s.pkgPrice)})</option>
@@ -1188,6 +1201,15 @@ function addPayment(preId){
   <div class="warn" id="pa_hint">Al guardar un paquete, se renueva el contador de clases del alumno (0/${s.pkgSize}).</div>
   <button class="btn primary" onclick="savePayment()">Guardar pago</button>`;
   openModal(h);
+  payUpdatePrices();
+}
+function payUpdatePrices(){
+  const st=db.students.find(x=>x.id===$('#pa_st').value);
+  const pkg=studentPkgPrice(st), part=studentPartPrice(st);
+  const cs=$('#pa_concept'); if(!cs) return;
+  cs.options[0].dataset.amt=pkg; cs.options[0].textContent=`Paquete ${db.settings.pkgSize} clases (${peso(pkg)})`;
+  cs.options[1].dataset.amt=part; cs.options[1].textContent=`Clase particular (${peso(part)})`;
+  payConceptChange();
 }
 function payConceptChange(){
   const sel=$('#pa_concept'), amt=sel.selectedOptions[0].dataset.amt;
