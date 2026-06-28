@@ -952,7 +952,7 @@ function viewTimer(){
     <div class="grid3" style="margin-top:10px">${qField('rounds','Rondas',q.rounds)}${qField('series','Series',q.series)}${qField('restSeries','D.serie(s)',q.restSeries)}</div>
     <div class="row" style="gap:8px;margin-top:14px">
       <button class="btn primary" style="flex:1" onclick="runQuick()"><svg viewBox="0 0 24 24" width="20" height="20" fill="#fff"><path d="M5 4l14 8-14 8z"/></svg>Iniciar</button>
-      <button class="btn ghost" onclick="saveQuickTabata()" style="flex:0 0 auto">\ud83d\udcbe Guardar</button>
+      <button class="btn ghost" onclick="saveQuickTabata()" style="flex:0 0 auto;width:auto">\ud83d\udcbe Guardar</button>
     </div></div>`;
   if(db.tabatas && db.tabatas.length){
     h+=`<div class="section-h">Mis tabatas guardadas</div>`;
@@ -960,8 +960,8 @@ function viewTimer(){
       h+=`<div class="card"><div class="row between"><div style="flex:1;min-width:0"><b>${esc(t.name)}</b><div class="tiny muted">${t.work}s ejerc \u00b7 ${t.rest}s desc \u00b7 ${t.rounds} rondas${t.series>1?` \u00b7 ${t.series} series`:''} \u00b7 ~${fmtDur(itemTimedSeconds({type:'time',...t}))}</div></div></div>
         <div class="row" style="gap:8px;margin-top:10px">
           <button class="btn primary" style="flex:1" onclick="runTabata('${t.id}')"><svg viewBox="0 0 24 24" width="18" height="18" fill="#fff"><path d="M5 4l14 8-14 8z"/></svg>Iniciar</button>
-          <button class="btn ghost" onclick="loadTabata('${t.id}')" style="flex:0 0 auto" title="Cargar para editar">\u270e</button>
-          <button class="btn ghost danger" onclick="delTabata('${t.id}')" style="flex:0 0 auto">\u2715</button>
+          <button class="btn ghost" onclick="loadTabata('${t.id}')" style="flex:0 0 auto;width:auto" title="Cargar para editar">\u270e</button>
+          <button class="btn ghost danger" onclick="delTabata('${t.id}')" style="flex:0 0 auto;width:auto">\u2715</button>
         </div></div>`;
     });
   }
