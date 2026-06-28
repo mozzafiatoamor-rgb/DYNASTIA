@@ -254,6 +254,12 @@ textarea.input{resize:vertical;min-height:74px}
 .splash-emblem{width:190px;height:180px;filter:drop-shadow(0 12px 34px rgba(31,109,255,.45))}
 .splash-name{font-size:58px;line-height:.9;background:linear-gradient(180deg,#eef2f7,#93a0ad);-webkit-background-clip:text;background-clip:text;color:transparent;letter-spacing:.05em}
 .splash-sub{font-size:11px;color:#8a98a8;text-transform:uppercase;letter-spacing:.24em}
+
+body.student .nav, body.student .fab, body.student .topbar .icon-btn{display:none!important}
+body.student main.app{padding-bottom:26px}
+.stu-prog{cursor:pointer}
+.lock-card{text-align:center;padding:28px 18px}
+.lock-card .em{font-size:40px;margin-bottom:8px}
 </style>
 </head>
 <body>
@@ -339,6 +345,9 @@ textarea.input{resize:vertical;min-height:74px}
 <div class="toast" id="toast"></div>
 
 <script>
+/* lz-string (compresión de links) */
+var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",n="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$",e={};function t(r,o){if(!e[r]){e[r]={};for(var n=0;n<r.length;n++)e[r][r.charAt(n)]=n}return e[r][o]}var i={compressToBase64:function(r){if(null==r)return"";var n=i._compress(r,6,function(r){return o.charAt(r)});switch(n.length%4){default:case 0:return n;case 1:return n+"===";case 2:return n+"==";case 3:return n+"="}},decompressFromBase64:function(r){return null==r?"":""==r?null:i._decompress(r.length,32,function(n){return t(o,r.charAt(n))})},compressToUTF16:function(o){return null==o?"":i._compress(o,15,function(o){return r(o+32)})+" "},decompressFromUTF16:function(r){return null==r?"":""==r?null:i._decompress(r.length,16384,function(o){return r.charCodeAt(o)-32})},compressToUint8Array:function(r){for(var o=i.compress(r),n=new Uint8Array(2*o.length),e=0,t=o.length;e<t;e++){var s=o.charCodeAt(e);n[2*e]=s>>>8,n[2*e+1]=s%256}return n},decompressFromUint8Array:function(o){if(null==o)return i.decompress(o);for(var n=new Array(o.length/2),e=0,t=n.length;e<t;e++)n[e]=256*o[2*e]+o[2*e+1];var s=[];return n.forEach(function(o){s.push(r(o))}),i.decompress(s.join(""))},compressToEncodedURIComponent:function(r){return null==r?"":i._compress(r,6,function(r){return n.charAt(r)})},decompressFromEncodedURIComponent:function(r){return null==r?"":""==r?null:(r=r.replace(/ /g,"+"),i._decompress(r.length,32,function(o){return t(n,r.charAt(o))}))},compress:function(o){return i._compress(o,16,function(o){return r(o)})},_compress:function(r,o,n){if(null==r)return"";var e,t,i,s={},u={},a="",p="",c="",l=2,f=3,h=2,d=[],m=0,v=0;for(i=0;i<r.length;i+=1)if(a=r.charAt(i),Object.prototype.hasOwnProperty.call(s,a)||(s[a]=f++,u[a]=!0),p=c+a,Object.prototype.hasOwnProperty.call(s,p))c=p;else{if(Object.prototype.hasOwnProperty.call(u,c)){if(c.charCodeAt(0)<256){for(e=0;e<h;e++)m<<=1,v==o-1?(v=0,d.push(n(m)),m=0):v++;for(t=c.charCodeAt(0),e=0;e<8;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}else{for(t=1,e=0;e<h;e++)m=m<<1|t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t=0;for(t=c.charCodeAt(0),e=0;e<16;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}0==--l&&(l=Math.pow(2,h),h++),delete u[c]}else for(t=s[c],e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;0==--l&&(l=Math.pow(2,h),h++),s[p]=f++,c=String(a)}if(""!==c){if(Object.prototype.hasOwnProperty.call(u,c)){if(c.charCodeAt(0)<256){for(e=0;e<h;e++)m<<=1,v==o-1?(v=0,d.push(n(m)),m=0):v++;for(t=c.charCodeAt(0),e=0;e<8;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}else{for(t=1,e=0;e<h;e++)m=m<<1|t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t=0;for(t=c.charCodeAt(0),e=0;e<16;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}0==--l&&(l=Math.pow(2,h),h++),delete u[c]}else for(t=s[c],e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;0==--l&&(l=Math.pow(2,h),h++)}for(t=2,e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;for(;;){if(m<<=1,v==o-1){d.push(n(m));break}v++}return d.join("")},decompress:function(r){return null==r?"":""==r?null:i._decompress(r.length,32768,function(o){return r.charCodeAt(o)})},_decompress:function(o,n,e){var t,i,s,u,a,p,c,l=[],f=4,h=4,d=3,m="",v=[],g={val:e(0),position:n,index:1};for(t=0;t<3;t+=1)l[t]=t;for(s=0,a=Math.pow(2,2),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;switch(s){case 0:for(s=0,a=Math.pow(2,8),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;c=r(s);break;case 1:for(s=0,a=Math.pow(2,16),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;c=r(s);break;case 2:return""}for(l[3]=c,i=c,v.push(c);;){if(g.index>o)return"";for(s=0,a=Math.pow(2,d),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;switch(c=s){case 0:for(s=0,a=Math.pow(2,8),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;l[h++]=r(s),c=h-1,f--;break;case 1:for(s=0,a=Math.pow(2,16),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;l[h++]=r(s),c=h-1,f--;break;case 2:return v.join("")}if(0==f&&(f=Math.pow(2,d),d++),l[c])m=l[c];else{if(c!==h)return null;m=i+i.charAt(0)}v.push(m),l[h++]=i+m.charAt(0),i=m,0==--f&&(f=Math.pow(2,d),d++)}}};return i}();"function"==typeof define&&define.amd?define(function(){return LZString}):"undefined"!=typeof module&&null!=module?module.exports=LZString:"undefined"!=typeof angular&&null!=angular&&angular.module("LZString",[]).factory("LZString",function(){return LZString});
+
 /* ---------------- Storage (con respaldo en memoria para la vista previa) ---------------- */
 const Store = {
   mem:{},
@@ -349,7 +358,7 @@ const KEY='dugout_db_v1';
 function loadDB(){
   try{ const r=Store.get(KEY); if(r) return JSON.parse(r); }catch(e){}
   return { students:[], programs:[], attendance:[], payments:[],
-    settings:{ pkgPrice:300, pkgSize:6, particularPrice:150, soundVol:0.9, sounds:{} } };
+    settings:{ pkgPrice:300, pkgSize:6, particularPrice:150, soundVol:0.9, sounds:{}, coachWhatsapp:"529832079693", coachName:"Gustavo Díaz" } };
 }
 let db = loadDB();
 function save(){ Store.set(KEY, JSON.stringify(db)); }
@@ -432,6 +441,8 @@ const BASE_EXERCISES=[
   if(!db.settings) db.settings={pkgPrice:300,pkgSize:6,particularPrice:150};
   if(db.settings.soundVol==null) db.settings.soundVol=0.9;
   if(!db.settings.sounds) db.settings.sounds={};
+  if(db.settings.coachWhatsapp==null) db.settings.coachWhatsapp="529832079693";
+  if(db.settings.coachName==null) db.settings.coachName="Gustavo Díaz";
   if(!db.categories) db.categories=[];
   BASE_CATS.forEach(c=>{ if(!db.categories.includes(c)) db.categories.push(c); });
   if(!db.exercises) db.exercises=[];
@@ -599,6 +610,11 @@ function studentDetail(id){
   h+=`<div class="card row between" style="margin-top:-4px"><span class="muted tiny">Tarifa</span><span class="tiny" style="font-weight:700">Paquete ${peso(studentPkgPrice(st))} · Particular ${peso(studentPartPrice(st))}${hasCustomRate(st)?' <span class="pill accent" style="margin-left:6px">propia</span>':' <span class="pill blue" style="margin-left:6px">general</span>'}</span></div>`;
   if(st.notes) h+=`<div class="card"><div class="tiny muted" style="margin-bottom:4px">NOTAS</div>${esc(st.notes)}</div>`;
   h+=`<button class="btn primary" onclick="registerAttendance('${st.id}')" style="margin:4px 0 16px"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Registrar asistencia de hoy</button>`;
+  h+=`<button class="btn ghost" onclick="shareStudent('${st.id}')" style="width:100%;margin:0 0 12px">📲 Compartir programa / acceso</button>`;
+  if(st.accessCode){ const _ac=st.accessActive!==false;
+    h+=`<div class="card" style="margin:0 0 16px"><div class="row between"><span class="muted tiny">Acceso de alumno</span><span class="tiny" style="font-weight:700">${_ac?('vence '+(st.accessExp?fmtDate(st.accessExp):'—')):'<span style="color:#ff8a7a">cortado</span>'}</span></div>
+      <button class="btn ghost ${_ac?'danger':''}" style="width:auto;margin-top:10px;min-height:42px;padding:9px 14px" onclick="toggleAccess('${st.id}')">${_ac?'Cortar acceso':'Reactivar acceso'}</button></div>`;
+  }
 
   // ---- PAGOS ----
   const pays=db.payments.filter(p=>p.studentId===id).sort((a,b)=>b.date.localeCompare(a.date));
@@ -1134,6 +1150,7 @@ function startSession(steps, program, exNames){
   steps.push({mode:'auto',type:'done',sec:0,label:'\u00a1Terminaste!',exName:'',exCat:''});
   T.phases=steps; T.idx=0; T.remaining=steps[0].sec||0; T.running=true; T.last=Date.now(); T.lastSec=null;
   T.program=program||null; T.exNames=exNames||[];
+  T.student=false; T.studentProg=null;
   T.weights=T.phases.map(p=> p.type==='done'?0 : (p.mode==='manual'? 20 : (p.sec||0)));
   T.cum=[]; let _acc=0; T.phases.forEach((p,i)=>{ T.cum[i]=_acc; _acc+=T.weights[i]; }); T.total=_acc||1;
   ensureCtx(); syncSoundIcon();
@@ -1166,7 +1183,7 @@ function applyPhase(){
   const vibMap={prep:[120],work:[260],rest:[90,60,90],restSeries:[90,60,90,60,90],reps:[200],done:[300,120,300,120,400]};
   vibrate(vibMap[p.type]||[120]);
   phaseBeep(p.type);
-  if(p.type==='done'){ T.running=false; clearInterval(T.interval); btn.textContent = T.program? '\u2713 Registrar asistencia' : 'Cerrar'; }
+  if(p.type==='done'){ T.running=false; clearInterval(T.interval); btn.textContent = T.student? '\u2713 Avisar que termin\u00e9' : (T.program? '\u2713 Registrar asistencia' : 'Cerrar'); }
   else if(p.mode==='manual'){ btn.textContent='\u2713 Siguiente'; }
   else { btn.textContent = T.running?'Pausar':'Reanudar'; }
 }
@@ -1190,7 +1207,7 @@ function updateNum(){
 }
 function toggleTimer(){
   const p=T.phases[T.idx]; if(!p) return;
-  if(p.type==='done'){ if(T.program) finishAttendance(); else exitTimer(); return; }
+  if(p.type==='done'){ if(T.student) studentNotifyDone(); else if(T.program) finishAttendance(); else exitTimer(); return; }
   if(p.mode==='manual'){ skipPhase(); return; }
   T.running=!T.running; T.last=Date.now();
   $('#playBtn').textContent=T.running?'Pausar':'Reanudar';
@@ -1539,7 +1556,14 @@ function openSettings(){
   <label class="field"><span class="lab">Precio del paquete</span><input class="input" id="s_pkg" type="number" value="${s.pkgPrice}"></label>
   <label class="field"><span class="lab">Clases por paquete</span><input class="input" id="s_size" type="number" value="${s.pkgSize}"></label>
   <label class="field"><span class="lab">Precio clase particular</span><input class="input" id="s_part" type="number" value="${s.particularPrice}"></label>
+  <label class="field"><span class="lab">Tu WhatsApp (con lada, ej. 52 983...)</span><input class="input" id="s_wa" type="tel" inputmode="tel" value="${s.coachWhatsapp||''}"></label>
   <button class="btn primary" onclick="saveSettings()">Guardar ajustes</button>
+  <div class="section-h">Modo alumno</div>
+  <div class="tiny muted" style="margin-bottom:10px;line-height:1.6">Comparte programas a tus alumnos desde su ficha. Descarga el archivo <b>alumnos.json</b> y súbelo a tu repositorio de GitHub (Add file → Upload files) para poder cortar acceso a distancia.</div>
+  <div class="btn-row">
+    <button class="btn ghost" onclick="downloadAccessList()">Descargar alumnos.json</button>
+    <button class="btn ghost" onclick="genAccessList()">Ver / copiar</button>
+  </div>
   <div class="section-h">Datos</div>
   <div class="btn-row">
     <button class="btn ghost" onclick="exportData()">Exportar copia</button>
@@ -1554,6 +1578,7 @@ function saveSettings(){
   db.settings.pkgPrice=parseFloat($('#s_pkg').value)||0;
   db.settings.pkgSize=parseInt($('#s_size').value)||6;
   db.settings.particularPrice=parseFloat($('#s_part').value)||0;
+  db.settings.coachWhatsapp=($('#s_wa').value||'').replace(/\D/g,'');
   save(); closeModal(); render(); toast('Ajustes guardados');
 }
 function exportData(){
@@ -1612,6 +1637,158 @@ function applyImport(mode){
 }
 function resetData(){ if(!confirm('Esto borra TODOS los datos. ¿Seguro?'))return; if(!confirm('Última confirmación: se perderá todo.'))return; db=loadDB.call(null); db={students:[],programs:[],attendance:[],payments:[],settings:{pkgPrice:300,pkgSize:6,particularPrice:150}}; save(); closeModal(); go('alumnos'); toast('Datos borrados'); }
 
+/* ===================================================================
+   MODO ALUMNO (A+) — compartir, acceso, lista
+=================================================================== */
+function genCode(){ let c; do{ c=Math.random().toString(36).slice(2,8); }while(db.students.some(s=>s.accessCode===c)); return c; }
+function waNumber(phone){ if(!phone) return ''; let d=(''+phone).replace(/\D/g,''); if(!d) return ''; if(d.length===10) d='52'+d; return d; }
+function shareStudent(id){
+  const st=db.students.find(x=>x.id===id); if(!st) return;
+  if(!db.programs.length){ toast('Primero crea un programa'); return; }
+  const pre=new Set(st.accessPrograms||[]);
+  const rows=db.programs.map(p=>`<label class="li" style="cursor:pointer"><input type="checkbox" class="shp" value="${p.id}" ${pre.has(p.id)?'checked':''} style="width:20px;height:20px;accent-color:var(--accent);flex:0 0 auto"><div class="meta"><div class="nm">${esc(p.name)}</div><div class="dt">${p.items.length} ejercicios</div></div></label>`).join('');
+  openModal(`<h2>Compartir con ${esc(st.name)}</h2>
+    <div class="tiny muted" style="margin-bottom:8px">Elige los programas que verá:</div>
+    <div class="card pad0">${rows}</div>
+    <label class="field" style="margin-top:12px"><span class="lab">Días de acceso</span><input class="input" id="sh_days" type="number" inputmode="numeric" value="30"></label>
+    <button class="btn primary" onclick="doShareStudent('${id}')">Generar y enviar por WhatsApp</button>
+    <div class="tiny muted" style="margin-top:10px">Se enviará al WhatsApp del alumno (${st.phone?esc(st.phone):'sin número — te muestro el link'}).</div>`);
+}
+function doShareStudent(id){
+  const st=db.students.find(x=>x.id===id); if(!st) return;
+  const ids=[...document.querySelectorAll('.shp:checked')].map(c=>c.value);
+  if(!ids.length){ toast('Elige al menos un programa'); return; }
+  const days=parseInt($('#sh_days').value)||30;
+  const exp=new Date(Date.now()+days*864e5).toISOString().slice(0,10);
+  if(!st.accessCode) st.accessCode=genCode();
+  st.accessExp=exp; st.accessActive=true; st.accessPrograms=ids;
+  save();
+  const progs=ids.map(pid=>db.programs.find(p=>p.id===pid)).filter(Boolean);
+  const link=buildStudentLink(st, progs, exp);
+  const msg=`Hola ${st.name}, este es tu acceso a tu entrenamiento con DYNASTIA (vence ${fmtDate(exp)}):\n${link}`;
+  const num=waNumber(st.phone);
+  closeModal();
+  if(num){ window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`,'_blank'); toast('Abriendo WhatsApp...'); }
+  else showLinkModal(link);
+}
+function buildStudentLink(st, progs, exp){
+  const payload={ c:(db.settings.coachName||'Gustavo Díaz'), w:waNumber(db.settings.coachWhatsapp), n:st.name, k:st.accessCode, x:exp,
+    p: progs.map(p=>({ n:p.name, it:p.items.map(it=>({type:it.type,name:it.name,category:it.category,prep:it.prep,work:it.work,rest:it.rest,rounds:it.rounds,series:it.series,restSeries:it.restSeries,reps:it.reps,video:exVideoUrl(it)||''})) })) };
+  const enc=LZString.compressToEncodedURIComponent(JSON.stringify(payload));
+  return location.href.split('#')[0]+'#a='+enc;
+}
+function showLinkModal(link){
+  openModal(`<h2>Link del alumno</h2>
+    <div class="tiny muted" style="margin-bottom:8px">Copia y envíaselo por WhatsApp:</div>
+    <textarea class="input" id="lk_txt" readonly style="height:120px;font-size:12px">${esc(link)}</textarea>
+    <button class="btn primary" style="margin-top:10px" onclick="copyFrom('lk_txt')">Copiar link</button>`);
+}
+function toggleAccess(id){ const st=db.students.find(x=>x.id===id); if(!st)return; const active=st.accessActive!==false; st.accessActive=!active; save(); studentDetail(id); toast(active?'Acceso cortado — regenera la lista en Ajustes':'Acceso reactivado — regenera la lista'); }
+function buildAccessJSON(){
+  const codes={};
+  db.students.forEach(st=>{ if(st.accessCode){ codes[st.accessCode]={exp:st.accessExp||'', active:st.accessActive!==false}; } });
+  return JSON.stringify({codes},null,2);
+}
+function downloadAccessList(){
+  const blob=new Blob([buildAccessJSON()],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download='alumnos.json'; a.click(); toast('alumnos.json descargado');
+}
+function genAccessList(){
+  const json=buildAccessJSON();
+  openModal(`<h2>Lista de acceso</h2>
+    <div class="tiny muted" style="margin-bottom:10px;line-height:1.6">Copia esto y pégalo en un archivo <b>alumnos.json</b> en tu repositorio de GitHub (misma carpeta que la app). Para cortar a un alumno, usa "Cortar acceso" en su ficha y vuelve a generar esta lista.</div>
+    <textarea class="input" id="acc_json" readonly style="height:190px;font-family:monospace;font-size:12px">${esc(json)}</textarea>
+    <button class="btn primary" style="margin-top:10px" onclick="copyFrom('acc_json')">Copiar</button>`);
+}
+function copyFrom(idEl){ const t=document.getElementById(idEl); if(!t)return; t.select(); try{ navigator.clipboard.writeText(t.value); }catch(e){ try{document.execCommand('copy');}catch(_){}} toast('Copiado'); }
+
+/* ===================================================================
+   MODO ALUMNO — runtime
+=================================================================== */
+let STUDENT=false, STUDENT_PROFILE=null;
+function hasCoachData(){
+  let raw=null;
+  try{ raw=Store.get(KEY); }catch(e){}
+  if(!raw){ try{ raw=localStorage.getItem(KEY); }catch(e){} }
+  if(!raw) return false;
+  try{ const d=JSON.parse(raw); return !!(d&&((d.students&&d.students.length)||(d.programs&&d.programs.length))); }catch(e){ return false; }
+}
+function decodeStudentPayload(s){ try{ const j=LZString.decompressFromEncodedURIComponent(s); return j? JSON.parse(j):null; }catch(e){ return null; } }
+function detectStudent(){
+  const m=location.hash.match(/[#&]a=([^&]+)/);
+  if(m){
+    const prof=decodeStudentPayload(m[1]);
+    if(prof && prof.p){ STUDENT_PROFILE=prof; if(!hasCoachData()){ try{ localStorage.setItem('dynastia_alumno', JSON.stringify(prof)); }catch(e){} } return true; }
+  }
+  if(!hasCoachData()){
+    try{ const saved=localStorage.getItem('dynastia_alumno'); if(saved){ STUDENT_PROFILE=JSON.parse(saved); return true; } }catch(e){}
+  }
+  return false;
+}
+function startStudent(){
+  STUDENT=true; document.body.classList.add('student');
+  const sub=document.querySelector('.topbar .sub'); if(sub) sub.textContent=(STUDENT_PROFILE.n||'Alumno')+' · DYNASTIA';
+  renderStudent(); checkAccess();
+}
+function accessState(){
+  const p=STUDENT_PROFILE; if(!p) return {ok:false,reason:'no'};
+  if(p._blocked) return {ok:false,reason:'cut'};
+  const exp=p._expEff||p.x;
+  if(exp && todayISO()>exp) return {ok:false,reason:'exp'};
+  return {ok:true};
+}
+function renderStudent(){
+  const p=STUDENT_PROFILE, st=accessState();
+  let h=`<section class="view">`;
+  if(!st.ok){
+    const msg = st.reason==='cut' ? 'Tu acceso fue desactivado.' : 'Tu acceso venció.';
+    h+=`<div class="card lock-card"><div class="em">🔒</div><h2 style="margin:0 0 6px">Acceso terminado</h2>
+      <div class="muted" style="margin-bottom:16px">${msg} Renueva con tu coach para seguir entrenando.</div>
+      <button class="btn primary" onclick="studentContact()" style="width:auto">Escribir al coach</button></div>`;
+  } else {
+    h+=`<h1 class="view-title bebas">Hola, ${esc(p.n||'')}</h1><div class="view-sub">Acceso hasta ${(p._expEff||p.x)?fmtDate(p._expEff||p.x):'—'}</div>`;
+    h+=`<div class="section-h">Tus programas</div>`;
+    (p.p||[]).forEach((pr,i)=>{
+      h+=`<div class="card row between stu-prog" onclick="runStudentProgram(${i})"><div style="flex:1;min-width:0"><b>${esc(pr.n||('Programa '+(i+1)))}</b><div class="tiny muted">${(pr.it||[]).length} ejercicios</div></div>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>`;
+    });
+    if(!(p.p&&p.p.length)) h+=`<div class="card muted">Tu coach aún no te asignó programas.</div>`;
+  }
+  h+=`</section>`;
+  main.innerHTML=h;
+}
+function checkAccess(){
+  const p=STUDENT_PROFILE; if(!p||!p.k) return;
+  const base=location.href.split('#')[0].replace(/[^/]*$/,'');
+  fetch(base+'alumnos.json',{cache:'no-store'}).then(r=>r.ok?r.json():null).then(data=>{
+    if(!data||!data.codes) return;
+    const e=data.codes[p.k];
+    if(e===undefined) return;
+    if(e.active===false){ p._blocked=true; } else { p._blocked=false; if(e.exp) p._expEff=e.exp; }
+    try{ localStorage.setItem('dynastia_alumno', JSON.stringify(p)); }catch(_){}
+    if(STUDENT) renderStudent();
+  }).catch(()=>{});
+}
+function runStudentProgram(i){
+  const pr=(STUDENT_PROFILE.p||[])[i]; if(!pr) return;
+  let steps=[]; (pr.it||[]).forEach(it=> steps=steps.concat(buildExerciseSteps(it)));
+  if(!steps.length){ toast('Programa sin tiempos'); return; }
+  startSession(steps, null, [...new Set((pr.it||[]).map(it=>it.name))]);
+  T.student=true; T.studentProg=pr.n||'';
+}
+function studentNotifyDone(){
+  const p=STUDENT_PROFILE, num=p&&p.w?(''+p.w).replace(/\D/g,''):'';
+  const msg=`Hola coach, terminé ${T.studentProg||'mi programa'} hoy 💪 — ${p&&p.n?p.n:''}`;
+  exitTimer();
+  if(num) window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`,'_blank'); else toast('¡Bien hecho! 💪');
+}
+function studentContact(){
+  const p=STUDENT_PROFILE, num=p&&p.w?(''+p.w).replace(/\D/g,''):'';
+  const msg=`Hola coach, quiero renovar mi acceso a DYNASTIA — ${p&&p.n?p.n:''}`;
+  if(num) window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`,'_blank'); else toast('Contacta a tu coach');
+}
+
 /* ---------------- init ---------------- */
 async function requestPersistence(){
   try{
@@ -1622,7 +1799,7 @@ async function requestPersistence(){
   }catch(e){}
 }
 requestPersistence();
-render();
+if(detectStudent()){ startStudent(); } else { render(); }
 
 (function(){var s=document.getElementById('splash'); if(s){ setTimeout(function(){ s.classList.add('hide'); setTimeout(function(){ if(s&&s.parentNode) s.parentNode.removeChild(s); },650); }, 1700);} })();
 </script>
