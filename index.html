@@ -493,6 +493,7 @@ function vibrate(p){ try{ navigator.vibrate && navigator.vibrate(p); }catch(e){}
 function firstUrl(text){ const m=(text||'').match(/https?:\/\/[^\s)]+/); return m? m[0].replace(/[.,;]+$/,'') : null; }
 function ytId(url){ if(!url) return null; const m=url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/); return m? m[1] : null; }
 function exVideoUrl(ex){ return (ex && ex.video) || firstUrl(ex && ex.note) || ''; }
+function cleanNote(n){ if(!n) return ''; return (''+n).replace(/https?:\/\/\S+/g,'').replace(/\bVer:\s*/gi,'').replace(/\s{2,}/g,' ').trim(); }
 function demoBtn(url){
   if(!url) return '';
   const safe=esc(url), id=ytId(url);
@@ -1673,7 +1674,7 @@ function doShareStudent(id){
 }
 function buildStudentLink(st, progs, exp){
   const payload={ c:(db.settings.coachName||'Gustavo Díaz'), w:waNumber(db.settings.coachWhatsapp), n:st.name, k:st.accessCode, x:exp,
-    p: progs.map(p=>({ n:p.name, it:p.items.map(it=>({type:it.type,name:it.name,category:it.category,prep:it.prep,work:it.work,rest:it.rest,rounds:it.rounds,series:it.series,restSeries:it.restSeries,reps:it.reps,video:exVideoUrl(it)||''})) })) };
+    p: progs.map(p=>({ n:p.name, it:p.items.map(it=>({type:it.type,name:it.name,category:it.category,prep:it.prep,work:it.work,rest:it.rest,rounds:it.rounds,series:it.series,restSeries:it.restSeries,reps:it.reps,video:exVideoUrl(it)||'',note:cleanNote(it.note)})) })) };
   const enc=LZString.compressToEncodedURIComponent(JSON.stringify(payload));
   return location.href.split('#')[0]+'#a='+enc;
 }
@@ -1748,9 +1749,11 @@ function renderStudent(){
       <button class="btn primary" onclick="studentContact()" style="width:auto">Escribir al coach</button></div>`;
   } else {
     h+=`<h1 class="view-title bebas">Hola, ${esc(p.n||'')}</h1><div class="view-sub">Acceso hasta ${(p._expEff||p.x)?fmtDate(p._expEff||p.x):'—'}</div>`;
+    h+=`<div class="card" style="line-height:1.7;margin-bottom:6px"><b>Tus entrenamientos</b><br><span class="muted">Tu coach te asignó estos programas. Toca uno para ver los ejercicios (con su explicación y video) y empezar cuando quieras. La app te irá guiando con cuenta regresiva, colores y sonido.</span></div>`;
     h+=`<div class="section-h">Tus programas</div>`;
     (p.p||[]).forEach((pr,i)=>{
-      h+=`<div class="card row between stu-prog" onclick="runStudentProgram(${i})"><div style="flex:1;min-width:0"><b>${esc(pr.n||('Programa '+(i+1)))}</b><div class="tiny muted">${(pr.it||[]).length} ejercicios</div></div>
+      const tot=(pr.it||[]).reduce((a,it)=>a+itemTimedSeconds(it),0);
+      h+=`<div class="card row between stu-prog" onclick="openStudentProgram(${i})"><div style="flex:1;min-width:0"><b>${esc(pr.n||('Programa '+(i+1)))}</b><div class="tiny muted">${(pr.it||[]).length} ejercicios · ~${fmtDur(tot)}</div></div>
         <svg class="chev" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>`;
     });
     if(!(p.p&&p.p.length)) h+=`<div class="card muted">Tu coach aún no te asignó programas.</div>`;
@@ -1770,7 +1773,27 @@ function checkAccess(){
     if(STUDENT) renderStudent();
   }).catch(()=>{});
 }
-function runStudentProgram(i){
+function openStudentProgram(i){ renderStudentProgram(i); window.scrollTo(0,0); }
+function renderStudentProgram(i){
+  const pr=(STUDENT_PROFILE.p||[])[i]; if(!pr){ renderStudent(); return; }
+  const its=pr.it||[]; const total=its.reduce((a,it)=>a+itemTimedSeconds(it),0);
+  let h=`<section class="view">
+    <button class="btn ghost" onclick="renderStudent()" style="width:auto;margin-bottom:8px">‹ Volver</button>
+    <h1 class="view-title bebas">${esc(pr.n||'Programa')}</h1>
+    <div class="view-sub">${its.length} ejercicios · ~${fmtDur(total)}</div>
+    <div class="card" style="line-height:1.7"><b>¿Cómo funciona?</b><br><span class="muted">Abajo está cada ejercicio: para qué sirve, cuánto dura y botones de <b>video</b> con la demostración. Cuando estés listo, toca <b>Comenzar</b> y la app te guía con cuenta regresiva, colores y sonido.</span></div>
+    <div class="section-h">Ejercicios</div>`;
+  its.forEach((it,idx)=>{
+    const param = it.type==='reps' ? `${it.series||1} series × ${it.reps||0} reps` : `${it.work||0}s × ${it.rounds||1} rondas${(+it.series||1)>1?(' · '+it.series+' series'):''}`;
+    h+=`<div class="card"><b>${idx+1}. ${esc(it.name||'')}</b><div class="tiny muted" style="margin-top:2px">${esc(it.category||'')} · ${param}</div>`;
+    if(it.note) h+=`<div class="tiny" style="margin-top:8px;line-height:1.6">${esc(it.note)}</div>`;
+    h+= demoBtn(it.video||'');
+    h+=`</div>`;
+  });
+  h+=`<button class="btn primary" style="margin-top:8px" onclick="startStudentProgram(${i})"><svg viewBox="0 0 24 24" width="20" height="20" fill="#fff"><path d="M5 4l14 8-14 8z"/></svg>Comenzar entrenamiento</button></section>`;
+  main.innerHTML=h;
+}
+function startStudentProgram(i){
   const pr=(STUDENT_PROFILE.p||[])[i]; if(!pr) return;
   let steps=[]; (pr.it||[]).forEach(it=> steps=steps.concat(buildExerciseSteps(it)));
   if(!steps.length){ toast('Programa sin tiempos'); return; }
