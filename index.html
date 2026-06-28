@@ -1744,7 +1744,8 @@ function detectStudent(){
 }
 function startStudent(){
   STUDENT=true; document.body.classList.add('student');
-  const sub=document.querySelector('.topbar .sub'); if(sub) sub.textContent=(STUDENT_PROFILE.n||'Alumno')+' · DYNASTIA';
+  const sub=document.querySelector('.topbar .sub');
+  if(sub){ const coach=esc(STUDENT_PROFILE.c||'Gustavo Díaz'); sub.innerHTML = coach+' · Coach de bateo<br><span style="text-transform:none;letter-spacing:.02em;opacity:.9;font-weight:600">'+esc(STUDENT_PROFILE.n||'Alumno')+'</span>'; }
   renderStudent(); checkAccess();
 }
 function accessState(){
@@ -1764,7 +1765,7 @@ function renderStudent(){
       <button class="btn primary" onclick="studentContact()" style="width:auto">Escribir al coach</button></div>`;
   } else {
     h+=`<h1 class="view-title bebas">Hola, ${esc(p.n||'')}</h1><div class="view-sub">Acceso hasta ${(p._expEff||p.x)?fmtDate(p._expEff||p.x):'—'}</div>`;
-    h+=`<div class="card" style="line-height:1.7;margin-bottom:6px"><b>Tus entrenamientos</b><br><span class="muted">Tu coach te asignó estos programas. Toca uno para ver los ejercicios (con su explicación y video) y empezar cuando quieras. La app te irá guiando con cuenta regresiva, colores y sonido.</span></div>`;
+    h+=`<div class="card" style="line-height:1.7;margin-bottom:6px"><b>Tus entrenamientos</b><br><span class="muted">${esc(p.c||'Gustavo Díaz')} · Tu coach personal de bateo te asignó estos programas. Toca uno para ver los ejercicios (con su explicación y video) y empezar cuando quieras. La app te irá guiando con cuenta regresiva, colores y sonido.</span></div>`;
     h+=`<div class="section-h">Tus programas</div>`;
     (p.p||[]).forEach((pr,i)=>{
       const tot=(pr.it||[]).reduce((a,it)=>a+itemTimedSeconds(it),0);
@@ -1812,6 +1813,7 @@ function startStudentProgram(i){
   const pr=(STUDENT_PROFILE.p||[])[i]; if(!pr) return;
   let steps=[]; (pr.it||[]).forEach(it=> steps=steps.concat(buildExerciseSteps(it)));
   if(!steps.length){ toast('Programa sin tiempos'); return; }
+  steps.unshift({mode:'auto',type:'prep',exName:'',exCat:'',label:'Prepárate',info:(pr.n||'Tu entrenamiento'),sec:10,vurl:''});
   startSession(steps, null, [...new Set((pr.it||[]).map(it=>it.name))]);
   T.student=true; T.studentProg=pr.n||'';
 }
