@@ -321,7 +321,7 @@ body.student main.app{padding-bottom:26px}
     <div class="ts-next" id="tsNext"></div>
     <div class="ts-video-row hide" id="tsVideo">
       <button class="ts-video" onclick="showVideoFromTimer()"><svg viewBox="0 0 24 24"><path d="M5 4l14 8-14 8z"/></svg>Ver aquí</button>
-      <button class="ts-video" onclick="openVideoExternalFromTimer()">↗ Sin anuncios</button>
+      <button class="ts-video" id="tsVideoExt" onclick="openVideoExternalFromTimer()">↗ Sin anuncios</button>
     </div>
   </div>
   <div class="ts-bottom">
@@ -494,14 +494,27 @@ function firstUrl(text){ const m=(text||'').match(/https?:\/\/[^\s)]+/); return 
 function ytId(url){ if(!url) return null; const m=url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/); return m? m[1] : null; }
 function exVideoUrl(ex){ return (ex && ex.video) || firstUrl(ex && ex.note) || ''; }
 function cleanNote(n){ if(!n) return ''; return (''+n).replace(/https?:\/\/\S+/g,'').replace(/\bVer:\s*/gi,'').replace(/\s{2,}/g,' ').trim(); }
+function isVideoFile(url){ return /\.(mp4|webm|m4v|mov|ogg|ogv)(\?.*)?$/i.test(url||''); }
+function jsAttr(s){ return (''+s).replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+function playVideo(url){
+  if(!url) return;
+  const f=$('#videoFrame'); if(!f) return;
+  const id=ytId(url);
+  if(id){
+    f.innerHTML='<iframe width="100%" height="100%" style="border:0;border-radius:12px" src="https://www.youtube.com/embed/'+id+'?autoplay=1&rel=0&playsinline=1" allow="autoplay; encrypted-media; fullscreen" allowfullscreen></iframe>';
+  } else if(isVideoFile(url)){
+    f.innerHTML='<video src="'+esc(url)+'" controls autoplay playsinline style="width:100%;height:100%;border-radius:12px;background:#000"></video>';
+  } else { try{ window.open(url,'_blank','noopener'); }catch(e){} return; }
+  $('#videoBg').classList.add('show');
+}
 function demoBtn(url){
   if(!url) return '';
-  const safe=esc(url), id=ytId(url);
-  if(id) return `<div class="btn-row" style="margin-top:8px">
-      <button class="btn ghost sm" style="flex:1" onclick="showVideo('${id}')"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M5 4l14 8-14 8z"/></svg>Ver aqu\u00ed</button>
-      <a class="btn ghost sm" style="flex:1;text-decoration:none" href="${safe}" target="_blank" rel="noopener">\u2197 Abrir en navegador</a>
+  const safe=esc(url), embed = ytId(url) || isVideoFile(url);
+  if(embed) return `<div class="btn-row" style="margin-top:8px">
+      <button class="btn ghost sm" style="flex:1" onclick="playVideo('${jsAttr(url)}')"><svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M5 4l14 8-14 8z"/></svg>Ver aquí</button>
+      <a class="btn ghost sm" style="flex:1;text-decoration:none" href="${safe}" target="_blank" rel="noopener">↗ Abrir en navegador</a>
     </div>`;
-  return `<a class="btn ghost sm" style="width:100%;margin-top:8px;text-decoration:none" href="${safe}" target="_blank" rel="noopener">\u2197 Ver referencia</a>`;
+  return `<a class="btn ghost sm" style="width:100%;margin-top:8px;text-decoration:none" href="${safe}" target="_blank" rel="noopener">↗ Ver referencia</a>`;
 }
 function showVideo(id){
   const f=$('#videoFrame'); if(!f) return;
@@ -510,7 +523,7 @@ function showVideo(id){
 }
 function closeVideo(){ const f=$('#videoFrame'); if(f) f.innerHTML=''; $('#videoBg').classList.remove('show'); }
 function pauseTimerForVideo(){ if(T.running){ T.running=false; T.last=Date.now(); const b=$('#playBtn'); if(b)b.textContent='Reanudar'; releaseWake(); } }
-function showVideoFromTimer(){ pauseTimerForVideo(); if(T.curVid) showVideo(T.curVid); }
+function showVideoFromTimer(){ pauseTimerForVideo(); if(T.curUrl) playVideo(T.curUrl); }
 function openVideoExternalFromTimer(){ pauseTimerForVideo(); if(T.curUrl){ try{ window.open(T.curUrl,'_blank','noopener'); }catch(e){} } }
 let toastT;
 function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),1900); }
@@ -1089,7 +1102,7 @@ function commitTabataEdit(id){
   save(); closeModal(); render(); toast('Tabata actualizada');
 }
 function buildExerciseSteps(ex){
-  const st=[]; const vid=ytId(exVideoUrl(ex));
+  const st=[]; const vurl=exVideoUrl(ex); const vid=ytId(vurl);
   if(ex.type==='reps'){
     const series=Math.max(1,+ex.series||1), reps=+ex.reps||0, restS=+ex.restSeries||0;
     for(let s=0;s<series;s++){
@@ -1109,6 +1122,7 @@ function buildExerciseSteps(ex){
       }
     }
   }
+  st.forEach(function(s){ s.vurl=vurl; });
   return st;
 }
 function runQuick(){ const q=db.quick; const steps=buildExerciseSteps({type:'time',name:'Tabata',category:'',prep:q.prep,work:q.work,rest:q.rest,rounds:q.rounds,series:q.series,restSeries:q.restSeries}); startSession(steps,null,[]); }
@@ -1177,9 +1191,10 @@ function applyPhase(){
   let nx=null;
   for(let i=T.idx+1;i<T.phases.length;i++){ const q=T.phases[i]; if(q.type==='done')break; if(q.exName && q.exName!==p.exName){ nx=q.exName; break; } }
   $('#tsNext').textContent = p.type==='done' ? '' : (nx? 'Sigue: '+nx : '\u00daltimo ejercicio \ud83d\udcaa');
+  T.curUrl = p.vurl||null;
   T.curVid = p.vid||null;
-  T.curUrl = T.curVid ? ('https://www.youtube.com/watch?v='+T.curVid) : null;
-  $('#tsVideo').classList.toggle('hide', !(T.curVid && p.type!=='done'));
+  $('#tsVideo').classList.toggle('hide', !(T.curUrl && p.type!=='done'));
+  const _ext=document.getElementById('tsVideoExt'); if(_ext) _ext.textContent = ytId(T.curUrl)? '↗ Sin anuncios' : '↗ Abrir';
   updateNum();
   const vibMap={prep:[120],work:[260],rest:[90,60,90],restSeries:[90,60,90,60,90],reps:[200],done:[300,120,300,120,400]};
   vibrate(vibMap[p.type]||[120]);
