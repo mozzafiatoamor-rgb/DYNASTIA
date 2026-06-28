@@ -174,19 +174,19 @@ textarea.input{resize:vertical;min-height:74px}
 /* Timer fullscreen */
 .timer-screen{position:fixed;inset:0;z-index:80;display:none;flex-direction:column;color:#fff;transition:background .4s;overflow-y:auto}
 .timer-screen.show{display:flex}
-.phase-prep{background:linear-gradient(160deg,#1f4e7a,#0f2740)}
-.phase-work{background:linear-gradient(160deg,#1f8a4d,#0c3d22)}
-.phase-rest{background:linear-gradient(160deg,#b5791b,#5c3d0c)}
-.phase-restSeries{background:linear-gradient(160deg,#7d4bc4,#341b56)}
-.phase-reps{background:linear-gradient(160deg,#c2541f,#5c220c)}
-.phase-done{background:linear-gradient(160deg,#c23a26,#5c170f)}
+.phase-prep{background:linear-gradient(160deg,#1f4e7a,#0f2740);--ring:#56a0ff}
+.phase-work{background:linear-gradient(160deg,#1f8a4d,#0c3d22);--ring:#3ddc84}
+.phase-rest{background:linear-gradient(160deg,#b5791b,#5c3d0c);--ring:#ffc24d}
+.phase-restSeries{background:linear-gradient(160deg,#7d4bc4,#341b56);--ring:#b388ff}
+.phase-reps{background:linear-gradient(160deg,#c2541f,#5c220c);--ring:#ff8f5c}
+.phase-done{background:linear-gradient(160deg,#c23a26,#5c170f);--ring:#ff6f5e}
 .ts-top{padding:calc(env(safe-area-inset-top) + 18px) 22px 0;display:flex;justify-content:space-between;align-items:center}
 .ts-x{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.15);display:grid;place-items:center}
 .ts-x svg{width:22px;height:22px;stroke:#fff}
 .ts-mid{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 22px}
 .ts-label{font-family:'Bebas Neue';font-size:46px;letter-spacing:.04em;text-transform:uppercase;opacity:.95}
 .ts-block{font-size:15px;font-weight:700;opacity:.8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.1em}
-.ts-num{font-family:'Bebas Neue';font-size:min(46vw,230px);line-height:.85;font-variant-numeric:tabular-nums}
+.ts-num{font-family:'Bebas Neue';font-size:min(27vw,135px);line-height:.85;font-variant-numeric:tabular-nums;position:relative;z-index:1}
 .ts-meta{font-size:16px;font-weight:700;opacity:.85;margin-top:8px;letter-spacing:.05em}
 .ts-next{font-size:13px;opacity:.6;margin-top:14px}
 .ts-bottom{padding:0 22px calc(env(safe-area-inset-bottom) + 26px);display:flex;gap:12px}
@@ -195,6 +195,16 @@ textarea.input{resize:vertical;min-height:74px}
 .ts-btn svg{width:22px;height:22px}
 .ts-prog{height:6px;background:rgba(255,255,255,.18);margin:0 22px 16px;border-radius:999px;overflow:hidden}
 .ts-prog > i{display:block;height:100%;background:#fff;border-radius:999px;transition:width .3s}
+.ts-ring-wrap{position:relative;width:min(78vw,320px);height:min(78vw,320px);display:grid;place-items:center;margin:8px 0 4px}
+.ts-ring{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.ts-ring-track{fill:none;stroke:rgba(255,255,255,.12)}
+.ts-ring-track.outer{stroke-width:2.5}
+.ts-ring-track.inner{stroke-width:6}
+.ts-ring-prog{fill:none;stroke-dasharray:100;stroke-dashoffset:0;stroke-linecap:round}
+.ts-ring-prog.inner{stroke:var(--ring,#fff);stroke-width:6.5;transition:stroke-dashoffset .15s linear, stroke .3s;filter:drop-shadow(0 0 5px rgba(255,255,255,.22))}
+.ts-ring-prog.outer{stroke:#c7d2dd;stroke-width:3;transition:stroke-dashoffset .25s linear;opacity:.9}
+.ts-bg{position:absolute;inset:0;background-size:74%!important;filter:blur(16px) saturate(1.05);opacity:.12;pointer-events:none;z-index:0}
+.timer-screen>.ts-top,.timer-screen>.ts-mid,.timer-screen>.ts-bottom{position:relative;z-index:1}
 
 .fab{position:fixed;right:max(16px,calc(50% - 244px));bottom:calc(86px + env(safe-area-inset-bottom));z-index:35;width:56px;height:56px;border-radius:18px;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 10px 24px rgba(31,109,255,.4);display:grid;place-items:center}
 .fab svg{width:26px;height:26px;stroke:#fff;stroke-width:2.5}
@@ -284,6 +294,7 @@ textarea.input{resize:vertical;min-height:74px}
 
 <!-- Timer fullscreen -->
 <div class="timer-screen" id="timerScreen">
+  <div class="ts-bg brand-emblem"></div>
   <div class="ts-top">
     <div class="ts-x" onclick="exitTimer()"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2"><path d="M18 6 6 18M6 6l12 12"/></svg></div>
     <button class="ts-x" id="soundBtn" onclick="toggleBeep()" title="Sonido"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" id="soundIcon"><path d="M11 5 6 9H2v6h4l5 4V5z"/><path d="M23 9l-6 6M17 9l6 6"/></svg></button>
@@ -291,7 +302,15 @@ textarea.input{resize:vertical;min-height:74px}
   <div class="ts-mid">
     <div class="ts-block" id="tsBlock"></div>
     <div class="ts-label" id="tsLabel">Prepárate</div>
-    <div class="ts-num" id="tsNum">10</div>
+    <div class="ts-ring-wrap">
+      <svg class="ts-ring" viewBox="0 0 100 100">
+        <circle class="ts-ring-track outer" cx="50" cy="50" r="47" pathLength="100"/>
+        <circle class="ts-ring-prog outer" id="tsRingOuter" cx="50" cy="50" r="47" pathLength="100"/>
+        <circle class="ts-ring-track inner" cx="50" cy="50" r="40" pathLength="100"/>
+        <circle class="ts-ring-prog inner" id="tsRing" cx="50" cy="50" r="40" pathLength="100"/>
+      </svg>
+      <div class="ts-num" id="tsNum">10</div>
+    </div>
     <div class="ts-meta" id="tsMeta"></div>
     <div class="ts-next" id="tsNext"></div>
     <div class="ts-video-row hide" id="tsVideo">
@@ -299,7 +318,6 @@ textarea.input{resize:vertical;min-height:74px}
       <button class="ts-video" onclick="openVideoExternalFromTimer()">↗ Sin anuncios</button>
     </div>
   </div>
-  <div class="ts-prog"><i id="tsProg" style="width:0%"></i></div>
   <div class="ts-bottom">
     <button class="ts-btn" onclick="resetTimer()"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M1 4v6h6M3.5 15a9 9 0 1 0 2-9.7L1 10"/></svg></button>
     <button class="ts-btn main" id="playBtn" onclick="toggleTimer()">Pausar</button>
@@ -1116,6 +1134,8 @@ function startSession(steps, program, exNames){
   steps.push({mode:'auto',type:'done',sec:0,label:'\u00a1Terminaste!',exName:'',exCat:''});
   T.phases=steps; T.idx=0; T.remaining=steps[0].sec||0; T.running=true; T.last=Date.now(); T.lastSec=null;
   T.program=program||null; T.exNames=exNames||[];
+  T.weights=T.phases.map(p=> p.type==='done'?0 : (p.mode==='manual'? 20 : (p.sec||0)));
+  T.cum=[]; let _acc=0; T.phases.forEach((p,i)=>{ T.cum[i]=_acc; _acc+=T.weights[i]; }); T.total=_acc||1;
   ensureCtx(); syncSoundIcon();
   $('#timerScreen').classList.add('show'); document.body.style.overflow='hidden';
   requestWake(); applyPhase();
@@ -1152,12 +1172,21 @@ function applyPhase(){
 }
 function updateNum(){
   const p=T.phases[T.idx];
-  if(p.type==='done'){ $('#tsNum').textContent='\u2713'; $('#tsProg').style.width='100%'; return; }
-  if(p.mode==='manual'){ $('#tsNum').textContent = p.reps? p.reps : '\u25b6'; $('#tsProg').style.width='100%'; return; }
+  const ring=$('#tsRing'), ringO=$('#tsRingOuter');
+  const setOuter=()=>{ if(!ringO||!T.cum) return;
+    const w=T.weights[T.idx]||0;
+    const ef = p.type==='done'?1 : (p.mode==='manual'?0 : (p.sec? (1-T.remaining/p.sec):0));
+    const done=(T.cum[T.idx]||0)+w*ef;
+    const tf=Math.max(0,Math.min(1, done/(T.total||1)));
+    ringO.style.strokeDashoffset=100*(1-tf);
+  };
+  if(p.type==='done'){ $('#tsNum').textContent='\u2713'; if(ring)ring.style.strokeDashoffset=0; if(ringO)ringO.style.strokeDashoffset=0; return; }
+  if(p.mode==='manual'){ $('#tsNum').textContent = p.reps? p.reps : '\u25b6'; if(ring)ring.style.strokeDashoffset=0; setOuter(); return; }
   const left=Math.max(0,Math.ceil(T.remaining));
   $('#tsNum').textContent = left>=60? Math.floor(left/60)+':'+String(left%60).padStart(2,'0') : left;
-  const pct=p.sec? (1-T.remaining/p.sec)*100 : 100;
-  $('#tsProg').style.width=Math.min(100,Math.max(0,pct))+'%';
+  const frac=p.sec? Math.max(0,Math.min(1, T.remaining/p.sec)) : 1;
+  if(ring) ring.style.strokeDashoffset = 100*(1-frac);
+  setOuter();
 }
 function toggleTimer(){
   const p=T.phases[T.idx]; if(!p) return;
