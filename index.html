@@ -625,6 +625,7 @@ function studentDetail(id){
   if(st.notes) h+=`<div class="card"><div class="tiny muted" style="margin-bottom:4px">NOTAS</div>${esc(st.notes)}</div>`;
   h+=`<button class="btn primary" onclick="registerAttendance('${st.id}')" style="margin:4px 0 16px"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Registrar asistencia de hoy</button>`;
   h+=`<button class="btn ghost" onclick="shareStudent('${st.id}')" style="width:100%;margin:0 0 12px">📲 Compartir programa / acceso</button>`;
+  h+=`<button class="btn ghost" onclick="openReport('${st.id}')" style="width:100%;margin:0 0 12px">📊 Reporte de avance (imagen)</button>`;
   if(st.accessCode){ const _ac=st.accessActive!==false;
     h+=`<div class="card" style="margin:0 0 16px"><div class="row between"><span class="muted tiny">Acceso de alumno</span><span class="tiny" style="font-weight:700">${_ac?('vence '+(st.accessExp?fmtDate(st.accessExp):'—')):'<span style="color:#ff8a7a">cortado</span>'}</span></div>
       <button class="btn ghost ${_ac?'danger':''}" style="width:auto;margin-top:10px;min-height:42px;padding:9px 14px" onclick="toggleAccess('${st.id}')">${_ac?'Cortar acceso':'Reactivar acceso'}</button></div>`;
@@ -1828,6 +1829,155 @@ function studentContact(){
   const msg=`Hola coach, quiero renovar mi acceso a DYNASTIA — ${p&&p.n?p.n:''}`;
   if(num) window.open(`https://wa.me/${num}?text=${encodeURIComponent(msg)}`,'_blank'); else toast('Contacta a tu coach');
 }
+
+/* ===================================================================
+   REPORTE DE AVANCE (imagen PNG para compartir)
+=================================================================== */
+let _reportBlob=null,_reportName='';
+function rpChk(v,label){ return `<label class="li" style="cursor:pointer"><input type="checkbox" class="rpc" value="${v}" checked style="width:20px;height:20px;accent-color:var(--accent);flex:0 0 auto"><div class="meta"><div class="nm">${label}</div></div></label>`; }
+function openReport(id){
+  const st=db.students.find(x=>x.id===id); if(!st) return;
+  const to=todayISO(), from=new Date(Date.now()-90*864e5).toISOString().slice(0,10);
+  openModal(`<h2>Reporte de avance</h2>
+    <div class="tiny muted" style="margin-bottom:10px">Genera una imagen con el avance de ${esc(st.name)} para compartir por WhatsApp.</div>
+    <div class="grid2">
+      <label class="field" style="margin:0"><span class="lab">Desde</span><input class="input" id="rp_from" type="date" value="${from}"></label>
+      <label class="field" style="margin:0"><span class="lab">Hasta</span><input class="input" id="rp_to" type="date" value="${to}"></label>
+    </div>
+    <div class="section-h">Incluir en el reporte</div>
+    <div class="card pad0">
+      ${rpChk('clases','Clases asistidas y paquete')}
+      ${rpChk('chart','Gráfica de asistencia por mes')}
+      ${rpChk('programas','Programas entrenados')}
+      ${rpChk('pagos','Pagos / estado de cuenta')}
+      ${rpChk('nota','Nota del coach')}
+    </div>
+    <label class="field" style="margin-top:12px"><span class="lab">Nota del coach (opcional)</span><textarea class="input" id="rp_note" placeholder="Ej. ¡Gran avance, Carlos! Sigue trabajando el swing..."></textarea></label>
+    <button class="btn primary" onclick="generateReport('${id}')" style="margin-top:6px">Generar imagen</button>`);
+}
+async function generateReport(id){
+  const st=db.students.find(x=>x.id===id); if(!st) return;
+  const from=document.getElementById('rp_from').value||'0001-01-01', to=document.getElementById('rp_to').value||todayISO();
+  const inR=x=> x>=from && x<=to;
+  const sel=new Set([...document.querySelectorAll('.rpc:checked')].map(c=>c.value));
+  const note=(document.getElementById('rp_note').value||'').trim();
+  const att=db.attendance.filter(a=>a.studentId===id && inR(a.date));
+  const pays=db.payments.filter(p=>p.studentId===id && inR(p.date)).sort((a,b)=>b.date.localeCompare(a.date));
+  toast('Generando imagen...');
+  try{
+    const cv=await drawReportCanvas({st,from,to,sel,note,att,pays});
+    cv.toBlob(function(blob){ if(!blob){ toast('No se pudo generar'); return; } showReportPreview(blob, st.name); }, 'image/png');
+  }catch(e){ toast('No se pudo generar la imagen'); }
+}
+function F(s,w){ return w+' '+s+'px system-ui,-apple-system,"Segoe UI",Roboto,sans-serif'; }
+function roundRectC(ctx,x,y,w,h,r){ r=Math.min(r,w/2,h/2); ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function loadImg(src){ return new Promise(res=>{ if(!src){res(null);return;} const im=new Image(); im.onload=()=>res(im); im.onerror=()=>res(null); im.src=src; }); }
+function emblemSrc(){ try{ const el=document.querySelector('.logo'); const bg=el?getComputedStyle(el).backgroundImage:''; const m=bg&&bg.match(/url\(["']?(data:[^"')]+)["']?\)/); return m?m[1]:null; }catch(e){ return null; } }
+function _initials(name){ return (name||'?').trim().split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase(); }
+function truncTxt(ctx,t,maxW){ if(ctx.measureText(t).width<=maxW) return t; let s=t; while(s.length && ctx.measureText(s+'…').width>maxW) s=s.slice(0,-1); return s+'…'; }
+function wrapLines(ctx,text,maxW){ const out=[]; (text||'').split('\n').forEach(para=>{ const words=para.split(' '); let line=''; words.forEach(wd=>{ const t=line?line+' '+wd:wd; if(ctx.measureText(t).width>maxW && line){ out.push(line); line=wd; } else line=t; }); out.push(line); }); return out; }
+function monthSeq(from,to){ let fm=from.slice(0,7), tm=to.slice(0,7); if(fm<'1900-01') fm=tm; const res=[]; let a=fm.split('-').map(Number), b=tm.split('-').map(Number); let y=a[0],m=a[1]; let g=0; while((y<b[0]||(y===b[0]&&m<=b[1])) && g++<60){ res.push(y+'-'+String(m).padStart(2,'0')); m++; if(m>12){m=1;y++;} } return res.length>12? res.slice(res.length-12): res; }
+function monthLabel(m){ const p=m.split('-'); return new Date(+p[0],+p[1]-1,1).toLocaleDateString('es-MX',{month:'short'}); }
+function drawAvatar(ctx,x,y,s,img,name){ ctx.save(); ctx.beginPath(); ctx.arc(x+s/2,y+s/2,s/2,0,7); ctx.closePath(); ctx.clip(); if(img){ const r=Math.max(s/img.width,s/img.height); const iw=img.width*r, ih=img.height*r; ctx.drawImage(img,x+(s-iw)/2,y+(s-ih)/2,iw,ih); } else { ctx.fillStyle='#1f6dff'; ctx.fillRect(x,y,s,s); ctx.fillStyle='#fff'; ctx.font=F(s*0.4,800); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(_initials(name),x+s/2,y+s/2); ctx.textAlign='left'; ctx.textBaseline='alphabetic'; } ctx.restore(); ctx.strokeStyle='rgba(86,160,255,.6)'; ctx.lineWidth=4; ctx.beginPath(); ctx.arc(x+s/2,y+s/2,s/2,0,7); ctx.stroke(); ctx.lineWidth=1; }
+function drawSecH(ctx,title,x,y,W,P){ ctx.fillStyle='#56a0ff'; ctx.font=F(22,700); ctx.fillText(title.toUpperCase(),x,y+8); ctx.strokeStyle='rgba(255,255,255,.08)'; ctx.beginPath(); ctx.moveTo(x,y+24); ctx.lineTo(W-P,y+24); ctx.stroke(); return y+58; }
+async function drawReportCanvas(d){
+  const W=1080, P=56, contentW=W-P*2;
+  const emblem=await loadImg(emblemSrc());
+  const photo=await loadImg(d.st.photo);
+  const tmp=document.createElement('canvas').getContext('2d');
+  const pc={}; d.att.forEach(a=>{const k=a.program||'Sesión libre'; if(!pc[k])pc[k]={n:0,last:a.date}; pc[k].n++; if(a.date>pc[k].last)pc[k].last=a.date;});
+  const progKeys=Object.keys(pc).sort((a,b)=>pc[b].n-pc[a].n);
+  const totalPay=d.pays.reduce((a,p)=>a+p.amount,0);
+  let noteLines=[]; if(d.sel.has('nota') && d.note){ tmp.font=F(24,500); noteLines=wrapLines(tmp,d.note,contentW-40); }
+  const months=d.sel.has('chart')? monthSeq(d.from,d.to): [];
+  let H=P+210+210+20;
+  if(d.sel.has('clases')) H+=58+170;
+  if(d.sel.has('chart')) H+=58+300;
+  if(d.sel.has('programas')) H+=58+ (progKeys.length? Math.min(progKeys.length,8)*66+26 : 60);
+  if(d.sel.has('pagos')) H+=58+80+Math.min(d.pays.length,6)*58+50;
+  if(d.sel.has('nota') && d.note) H+=58+noteLines.length*40+50;
+  H+=110; H=Math.round(H);
+  const cv=document.createElement('canvas'); cv.width=W; cv.height=H; const ctx=cv.getContext('2d');
+  const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#151b24'); g.addColorStop(1,'#0a0d12'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+  ctx.textBaseline='alphabetic'; ctx.textAlign='left';
+  let y=P;
+  if(emblem){ const es=120; ctx.drawImage(emblem,P,y,es,es*emblem.height/emblem.width); }
+  ctx.fillStyle='#eef2f7'; ctx.font=F(52,800); ctx.fillText('DYNASTIA', P+142, y+52);
+  ctx.fillStyle='#8a98a8'; ctx.font=F(25,600); ctx.fillText('Reporte de avance', P+144, y+88);
+  ctx.fillStyle='#56a0ff'; ctx.font=F(23,600); ctx.fillText('Gustavo Díaz · Coach de bateo', P+144, y+122);
+  y+=210;
+  ctx.strokeStyle='rgba(255,255,255,.08)'; ctx.beginPath(); ctx.moveTo(P,y); ctx.lineTo(W-P,y); ctx.stroke(); y+=34;
+  const ps=150; drawAvatar(ctx,P,y,ps,photo,d.st.name);
+  ctx.fillStyle='#fff'; ctx.font=F(46,800); ctx.fillText(truncTxt(ctx,d.st.name,contentW-ps-30), P+ps+30, y+52);
+  ctx.fillStyle='#8a98a8'; ctx.font=F(25,500); ctx.fillText('Periodo: '+fmtDate(d.from)+'  –  '+fmtDate(d.to), P+ps+30, y+92);
+  ctx.fillText('Generado: '+fmtDate(todayISO()), P+ps+30, y+128);
+  y+=210-34;
+  if(d.sel.has('clases')){
+    y=drawSecH(ctx,'Resumen',P,y,W,P);
+    const size=d.st.package&&d.st.package.size?d.st.package.size:0, used=d.st.package&&d.st.package.used?d.st.package.used:0, rem=size?Math.max(0,size-used):0;
+    const tiles=[['Clases en el periodo',String(d.att.length)],['Total histórico',String(db.attendance.filter(a=>a.studentId===d.st.id).length)],[size?'Paquete restante':'Modalidad', size?(rem+' de '+size):'Particular']];
+    const tw=(contentW-48)/3;
+    tiles.forEach((t,i)=>{ const tx=P+i*(tw+24); roundRectC(ctx,tx,y,tw,120,16); ctx.fillStyle='rgba(255,255,255,.05)'; ctx.fill(); ctx.fillStyle='#fff'; ctx.font=F(40,800); ctx.fillText(truncTxt(ctx,t[1],tw-40),tx+22,y+64); ctx.fillStyle='#8a98a8'; ctx.font=F(19,600); ctx.fillText(t[0],tx+22,y+98); });
+    y+=120+40;
+  }
+  if(d.sel.has('chart')){
+    y=drawSecH(ctx,'Asistencia por mes',P,y,W,P);
+    const byM={}; d.att.forEach(a=>{const m=a.date.slice(0,7); byM[m]=(byM[m]||0)+1;});
+    const counts=months.map(m=>byM[m]||0), maxC=Math.max(1,...counts);
+    const chartH=180, baseY=y+chartH, chartX=P+6, chartW=contentW-12, n=months.length||1, slot=chartW/n, bw=Math.min(66,slot*0.6);
+    ctx.strokeStyle='rgba(255,255,255,.08)'; ctx.beginPath(); ctx.moveTo(P,baseY); ctx.lineTo(W-P,baseY); ctx.stroke();
+    months.forEach((m,i)=>{ const val=counts[i], bh=maxC?(val/maxC)*(chartH-10):0, bx=chartX+i*slot+(slot-bw)/2, by=baseY-bh;
+      const gr=ctx.createLinearGradient(0,by,0,baseY); gr.addColorStop(0,'#56a0ff'); gr.addColorStop(1,'#1f6dff'); roundRectC(ctx,bx,by,bw,Math.max(bh,2),8); ctx.fillStyle=gr; ctx.fill();
+      if(val){ ctx.fillStyle='#eef2f7'; ctx.font=F(22,700); ctx.textAlign='center'; ctx.fillText(String(val),bx+bw/2,by-10); }
+      ctx.fillStyle='#8a98a8'; ctx.font=F(18,600); ctx.textAlign='center'; ctx.fillText(monthLabel(m),bx+bw/2,baseY+32); ctx.textAlign='left';
+    });
+    y=baseY+62;
+  }
+  if(d.sel.has('programas')){
+    y=drawSecH(ctx,'Programas entrenados',P,y,W,P);
+    if(!progKeys.length){ ctx.fillStyle='#8a98a8'; ctx.font=F(23,500); ctx.fillText('Aún no ha entrenado programas.',P,y+12); y+=54; }
+    else { progKeys.slice(0,8).forEach(k=>{ roundRectC(ctx,P,y,contentW,54,12); ctx.fillStyle='rgba(255,255,255,.04)'; ctx.fill();
+        ctx.fillStyle='#eef2f7'; ctx.font=F(25,700); ctx.textAlign='left'; ctx.fillText(truncTxt(ctx,k,contentW-320),P+20,y+35);
+        ctx.fillStyle='#8a98a8'; ctx.font=F(19,500); ctx.textAlign='right'; ctx.fillText('Última: '+fmtDate(pc[k].last),W-P-92,y+34);
+        ctx.fillStyle='#1f6dff'; roundRectC(ctx,W-P-78,y+13,60,28,14); ctx.fill(); ctx.fillStyle='#fff'; ctx.font=F(20,800); ctx.textAlign='center'; ctx.fillText(pc[k].n+'×',W-P-48,y+33); ctx.textAlign='left';
+        y+=66; }); y+=10; }
+  }
+  if(d.sel.has('pagos')){
+    y=drawSecH(ctx,'Pagos / estado de cuenta',P,y,W,P);
+    roundRectC(ctx,P,y,contentW,60,12); ctx.fillStyle='rgba(61,220,132,.10)'; ctx.fill();
+    ctx.fillStyle='#eef2f7'; ctx.font=F(25,700); ctx.textAlign='left'; ctx.fillText('Total pagado en el periodo',P+20,y+38);
+    ctx.fillStyle='#3ddc84'; ctx.font=F(28,800); ctx.textAlign='right'; ctx.fillText(peso(totalPay),W-P-20,y+38); ctx.textAlign='left'; y+=76;
+    d.pays.slice(0,6).forEach(p=>{ ctx.fillStyle='#cfd6de'; ctx.font=F(22,600); ctx.textAlign='left'; ctx.fillText(truncTxt(ctx,p.concept,contentW-260)+'  ·  '+fmtDate(p.date),P+6,y+28);
+      ctx.fillStyle='#3ddc84'; ctx.font=F(22,700); ctx.textAlign='right'; ctx.fillText(peso(p.amount),W-P-6,y+28); ctx.textAlign='left'; y+=52; });
+    if(d.pays.length>6){ ctx.fillStyle='#8a98a8'; ctx.font=F(19,500); ctx.fillText('+ '+(d.pays.length-6)+' pagos más',P+6,y+22); y+=38; }
+    y+=10;
+  }
+  if(d.sel.has('nota') && d.note){
+    y=drawSecH(ctx,'Nota del coach',P,y,W,P);
+    roundRectC(ctx,P,y,contentW,noteLines.length*40+28,12); ctx.fillStyle='rgba(31,109,255,.10)'; ctx.fill();
+    ctx.fillStyle='#eef2f7'; ctx.font=F(24,500); ctx.textAlign='left';
+    noteLines.forEach((ln,i)=>{ ctx.fillText(ln,P+20,y+36+i*40); });
+    y+=noteLines.length*40+28+22;
+  }
+  ctx.strokeStyle='rgba(255,255,255,.08)'; ctx.beginPath(); ctx.moveTo(P,H-78); ctx.lineTo(W-P,H-78); ctx.stroke();
+  ctx.fillStyle='#8a98a8'; ctx.font=F(20,500); ctx.textAlign='left'; ctx.fillText('Generado con DYNASTIA · Gustavo Díaz · Coach de bateo',P,H-42);
+  return cv;
+}
+function showReportPreview(blob,name){
+  _reportBlob=blob; _reportName=name||'alumno';
+  const url=URL.createObjectURL(blob);
+  openModal(`<h2>Reporte listo</h2>
+    <img src="${url}" style="width:100%;border-radius:14px;border:1px solid var(--line);margin-bottom:12px" alt="Reporte">
+    <button class="btn primary" onclick="shareReportImage()"><svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="#fff" stroke-width="2" style="margin-right:6px"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>Compartir imagen</button>
+    <button class="btn ghost" style="margin-top:8px" onclick="downloadReportImage()">Descargar</button>`);
+}
+async function shareReportImage(){
+  if(!_reportBlob) return;
+  const file=new File([_reportBlob], 'reporte-'+_reportName.replace(/\s+/g,'_')+'.png', {type:'image/png'});
+  try{ if(navigator.canShare && navigator.canShare({files:[file]})){ await navigator.share({files:[file], title:'Reporte de avance', text:'Reporte de avance · DYNASTIA'}); return; } }catch(e){ return; }
+  downloadReportImage();
+}
+function downloadReportImage(){ if(!_reportBlob) return; const a=document.createElement('a'); a.href=URL.createObjectURL(_reportBlob); a.download='reporte-'+_reportName.replace(/\s+/g,'_')+'.png'; a.click(); }
 
 /* ---------------- init ---------------- */
 async function requestPersistence(){
